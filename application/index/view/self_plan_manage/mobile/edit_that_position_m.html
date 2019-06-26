@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+	<link href="__STATIC__/MUI/css/mui.picker.min.css" rel="stylesheet"/>
+</head>
+<body>
+	<!-- 主页面标题 -->
+	<header class="mui-bar mui-bar-nav">
+		<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+		<h1 class="mui-title">编辑计划位信息</h1>
+	</header>
+	<div class="mui-content mui-scroll-wrapper">
+		<div id="header_title" style="width:100%;padding:10px;position:relative;z-index:999;background-color:#DCDCDC;font-size:15px;">
+			<table style="width:100%;">
+				<tr>
+					<td>
+						{php}
+							$tripInfoArr = [];
+							$vAirPortArr = explode('&',$planPositionInfo['air_line']['air_line_text']);
+							if(count($vAirPortArr)>1){
+								$tripN = 0;
+								foreach($vAirPortArr as $vAirPort)
+								{
+									$tripf = explode('-',$vAirPort);
+									for ($i=0; $i<=count($tripf)-1; $i++)
+									{
+										if($i>0){
+											$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+											$tripN = $tripN+1;
+										}
+									}
+									
+								}
+								$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k];
+								}
+							}else
+							{
+								$tripN = 0;
+								$tripf = explode('-',$planPositionInfo['air_line']['air_line_text']);
+								for ($i=0; $i<=count($tripf)-1; $i++)
+								{
+									if($i>0){
+										$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+										$tripN = $tripN+1;
+									}
+								}
+								$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k];
+								}
+							}
+							foreach($tripInfoArr as $val)
+							{ 
+								echo $val.'<br>';	
+							} 
+						{/php}
+					</td>
+					<td>{php}echo $planPositionInfo['group_name']['title'].'--'.$planPositionInfo['air_line']['manager']{/php}</td>
+				</tr>
+			</table>
+		</div>
+		<div class="mui-scroll">
+			<!-- 主界面具体展示内容 -->
+			<form class="mui-input-group" id="position_form" style="font-size:15px;">
+				{php}
+					$airTimeArr = explode('-',$planPositionInfo['air_time']);
+				{/php}
+				{notempty name="planPositionInfo.departure_date_1"}
+					<div class="mui-input-row"><label>第1程日期</label><input type="text" name="departure_date_1" data-options='{"type":"date","value":"{$planPositionInfo.departure_date_1}"}' placeholder="选择日期" value="{$planPositionInfo.departure_date_1}"></div>
+					<div class="mui-input-row"><label>第1程时间</label><input type="text" name="air_time1" data-options='{"type":"time","value":"{$planPositionInfo.departure_date_1} {$airTimeArr[0]}"}' placeholder="选择时间"value="{$airTimeArr[0]}"></div>
+				{/notempty}
+				{notempty name="planPositionInfo.departure_date_2"}
+					<div class="mui-input-row"><label>第2程日期</label><input type="text" name="departure_date_2" data-options='{"type":"date","value":"{$planPositionInfo.departure_date_2}"}' placeholder="选择日期" value="{$planPositionInfo.departure_date_2}"></div>
+					<div class="mui-input-row"><label>第2程时间</label><input type="text" name="air_time2" data-options='{"type":"time","value":"{$planPositionInfo.departure_date_2} {$airTimeArr[1]}"}' placeholder="选择时间"value="{$airTimeArr[1]}"></div>
+				{/notempty}
+				{notempty name="planPositionInfo.departure_date_3"}
+					<div class="mui-input-row"><label>第3程日期</label><input type="text" name="departure_date_3" data-options='{"type":"date","value":"{$planPositionInfo.departure_date_3}"}' placeholder="选择日期" value="{$planPositionInfo.departure_date_3}"></div>
+					<div class="mui-input-row"><label>第3程时间</label><input type="text" name="air_time3" data-options='{"type":"time","value":"{$planPositionInfo.departure_date_3} {$airTimeArr[2]}"}' placeholder="选择时间"value="{$airTimeArr[2]}"></div>
+				{/notempty}
+				{notempty name="planPositionInfo.departure_date_4"}
+					<div class="mui-input-row"><label>第4程日期</label><input type="text" name="departure_date_4" data-options='{"type":"date","value":"{$planPositionInfo.departure_date_4}"}' placeholder="选择日期" value="{$planPositionInfo.departure_date_4}"></div>
+					<div class="mui-input-row"><label>第4程时间</label><input type="text" name="air_time4" data-options='{"type":"time","value":"{$planPositionInfo.departure_date_4} {$airTimeArr[3]}"}' placeholder="选择时间"value="{$airTimeArr[3]}"></div>
+				{/notempty}
+				<div class="mui-input-row">
+					<label>座位数</label>
+					<div class="mui-numbox" style="float:none;width:180px;margin-left:0px;">
+						<button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
+						<input class="mui-input-numbox" type="number" name="seat_number" value="{$planPositionInfo.seat_number}">
+						<button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
+					</div>
+				</div>
+				<div class="mui-input-row">
+					<label>最低销售</label>
+					<input type="text" name="selling_price" placeholder="" value="{$planPositionInfo.selling_price}">
+				</div>
+				<div class="mui-input-row">
+					<label>含税底价</label>
+					<input type="text" name="reserve_price" placeholder="" value="{$planPositionInfo.reserve_price}">
+				</div>
+				<div class="mui-input-row">
+					<label>出票时限</label>
+					<input type="text" name="time_limit" data-options='{"value":"{$planPositionInfo.time_limit}"}' placeholder="选择时间" value="{$planPositionInfo.time_limit}">
+				</div>
+				<div class="mui-input-row">
+					<label>状态</label>
+					<select name="policy_state" class="mui-btn mui-btn-block" style="float:none;width:60%;padding-left:0px;">
+						<option value="">请选择</option>
+						<option value="取消" {eq name="planPositionInfo.policy_state" value="取消"}selected{/eq}>取消</option>
+						<option value="已出票"{eq name="planPositionInfo.policy_state" value="已出票"}selected{/eq}>已出票</option>
+					</select>
+				</div>
+			</form>
+			<div class="fill_height" style="width: 100%"></div>
+			<div style="width: 100%;height:41px;"></div>
+		</div>
+		<div style="width:100%;position:fixed;bottom:0px;z-index:999;text-align:center;">
+			<button type="button" id="submit" class="mui-btn mui-btn-success" style="padding:10px 35px;" >提交</button>
+		</div>
+	
+	</div>  
+<style>
+
+
+</style>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script src="__STATIC__/MUI/js/mui.picker.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function () {
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	mui.init();
+	mui('.mui-scroll-wrapper').scroll({
+		deceleration: 0.0005 //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+	});
+	//填充高度
+	var fillHeight = $('#header_title').outerHeight(true);
+	$('.fill_height').css('height',fillHeight);
+	//日期选择
+	mui('#position_form').on('tap','input[name^="departure_date"],input[name^="air_time"],input[name="time_limit"]',function(){
+		var _self = this;
+		if(_self.picker) {
+			_self.picker.show(function (rs) {
+				$(_self).val(rs.text);
+				_self.picker.dispose();
+				_self.picker = null;
+			});
+		} else {
+			var optionsJson = _self.getAttribute('data-options') || '{}';
+			var options = JSON.parse(optionsJson);
+			/*
+			 * 首次显示时实例化组件
+			 * 示例为了简洁，将 options 放在了按钮的 dom 上
+			 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+			 */
+			_self.picker = new mui.DtPicker(options);
+			_self.picker.show(function(rs) {
+				/*
+				 * rs.value 拼合后的 value
+				 * rs.text 拼合后的 text
+				 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+				 * rs.m 月，用法同年
+				 * rs.d 日，用法同年
+				 * rs.h 时，用法同年
+				 * rs.i 分（minutes 的第二个字母），用法同年
+				 */
+				$(_self).val(rs.text);
+				/* 
+				 * 返回 false 可以阻止选择框的关闭
+				 * return false;
+				 */
+				/*
+				 * 释放组件资源，释放后将将不能再操作组件
+				 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+				 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+				 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+				 */
+				_self.picker.dispose();
+				_self.picker = null;
+			});
+		}
+	});
+	//点击提交
+	mui('body').on('tap','#submit',function(){
+		var positionData = {};
+		$('#position_form').find('input').each(function(){
+			positionData[$(this).attr('name')] = $(this).val();
+		});
+		var verifyR = verifyData(positionData);
+		if(verifyR['code']==0){
+			mui.toast(verifyR['msg']);
+		}else{
+			positionData['policy_state'] = $('#position_form').find('select[name="policy_state"]').val();
+			positionData['__token__'] = sessionStorage.getItem('__token__');
+			positionData['id'] = '{$planPositionInfo.id}';
+			var air_time = '' 
+			$('#position_form').find('input[name^="air_time"]').each(function(){
+				air_time = air_time+$(this).val()+'-';
+			});
+			positionData['air_time'] = air_time.slice(0,air_time.length-1);
+			delete positionData['air_time1'];
+			delete positionData['air_time2'];
+			delete positionData['air_time3'];
+			delete positionData['air_time4'];
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/EditPlanData')}",
+				data:positionData,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						mui.toast(data.message);
+						window.location.href="{:url('SelfPlanManage/PositionDetailsMobile')}"+'?planPositionId={$planPositionInfo.id}';
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}
+	});
+});
+
+//******************验证提交数据************
+function verifyData(positionData){
+	var result ={};
+	$.each(positionData,function(index, value){
+		if(value==''){
+			result = {'code':0,'msg':'所有空都必须填写'};
+			return false;
+		}
+		if(index.includes('departure_date')){
+			if(!new RegExp('^\\d{4}-\\d{2}-\\d{2}$').test(value)){
+				result = {'code':0,'msg':'起飞日期格式错误'};
+				return false;
+			}
+		}
+		if(index.includes('air_time')){
+			if(!new RegExp('^[0-2][0-9]:[0-5][0-9]$').test(value)){
+				result = {'code':0,'msg':'起飞时间格式错误'};
+				return false;
+			}
+		}
+		if(index=='reserve_price' || index=='selling_price'){
+			if(!new RegExp('(^[1-9]([0-9]+)?(\\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\\.[0-9]([0-9])?$)').test(value)){
+				
+				result = {'code':0,'msg':'金额格式错误'};
+				return false;
+			}
+		}
+		if(index=='seat_number'){
+			if(!new RegExp('^\\d+$').test(value) || value<1){
+				result = {'code':0,'msg':'座位数格式错误'};
+				return false;
+			}
+		}
+		if(index=='time_limit'){
+			if(!new RegExp('^20[1-9][0-9]-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				result = {'code':0,'msg':'出票时限格式错误'};
+				return false;
+			}
+		}
+	});
+	return result;
+}
+
+</script>
+</body>
+</html>

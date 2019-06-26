@@ -1,0 +1,490 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<link rel="stylesheet" href="__STATIC__/layui/css/layui.css">
+	<title>计划位记录管理</title>
+</head>
+<body>
+<fieldset class="layui-elem-field">
+	<legend>计划位信息</legend>
+	<div class="layui-field-box">
+		<table class="layui-table" lay-size="sm">
+			<thead>
+				<tr>
+					<td class="layui-hide">计划位表id</td>
+					<td>行程</td>
+					{notempty name="planPositionInfo.departure_date_1"}
+						<td>第1程日期</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_2"}
+						<td>第2程日期</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_3"}
+						<td>第3程日期</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_4"}
+						<td>第4程日期</td>
+					{/notempty}
+					<td>座位数</td>
+					<td>留位</td>
+					<td>余位</td>
+					<td>出票时限</td>
+					<td>状态</td>
+					
+					
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="layui-hide" id='plan_positon_id'>{$planPositionInfo.id}</td>
+					<td>
+						{php}
+							$tripInfoArr = [];
+							$vAirPortArr = explode('&',$planPositionInfo['air_line']['air_line_text']);
+							if(count($vAirPortArr)>1){
+								$tripN = 0;
+								foreach($vAirPortArr as $vAirPort)
+								{
+									$tripf = explode('-',$vAirPort);
+									for ($i=0; $i<=count($tripf)-1; $i++)
+									{
+										if($i>0){
+											$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+											$tripN = $tripN+1;
+										}
+									}
+									
+								}
+								$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+								$air_timeArr = explode('-',$planPositionInfo['air_time']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k].' '.$air_timeArr[$k];
+								}
+							}else
+							{
+								$tripN = 0;
+								$tripf = explode('-',$planPositionInfo['air_line']['air_line_text']);
+								for ($i=0; $i<=count($tripf)-1; $i++)
+								{
+									if($i>0){
+										$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+										$tripN = $tripN+1;
+									}
+								}
+								$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+								$air_timeArr = explode('-',$planPositionInfo['air_time']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k].' '.$air_timeArr[$k];
+								}
+							}
+							foreach($tripInfoArr as $val)
+							{ 
+								echo $val.'<br>';	
+							} 
+						{/php}
+					</td>
+					{notempty name="planPositionInfo.departure_date_1"}
+						<td>{$planPositionInfo.departure_date_1}</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_2"}
+						<td>{$planPositionInfo.departure_date_2}</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_3"}
+						<td>{$planPositionInfo.departure_date_3}</td>
+					{/notempty}
+					{notempty name="planPositionInfo.departure_date_4"}
+						<td>{$planPositionInfo.departure_date_4}</td>
+					{/notempty}
+					<td id="plan_seat_number">{$planPositionInfo.seat_number}</td>
+					<td id="plan_reserved">
+						{php}
+							$occupy_seat = 0;
+							foreach($planPositionInfo['reserve_record'] as $val)
+							{
+								$occupy_seat = $occupy_seat+$val['quantity'];
+							}
+							foreach($planPositionInfo['definite_record'] as $passList)
+							{
+								foreach($passList['definite_pass_list'] as $val){
+									$occupy_seat = $occupy_seat+count($val);
+								}
+							}
+							echo $occupy_seat;
+						{/php}
+					</td>
+					<td id="plan_remainder" style="color:#FF5722;">
+						{php}
+							$occupy_seat = 0;
+							foreach($planPositionInfo['reserve_record'] as $val)
+							{
+								$occupy_seat = $occupy_seat+$val['quantity'];
+							}
+							foreach($planPositionInfo['definite_record'] as $passList)
+							{
+								foreach($passList['definite_pass_list'] as $val){
+									$occupy_seat = $occupy_seat+count($val);
+								}
+							}
+							echo $planPositionInfo['seat_number']-$occupy_seat;
+						{/php}
+					</td>
+					<td>
+						{notempty name="planPositionInfo.time_limit"}
+							{$planPositionInfo.time_limit}
+						{/notempty}
+					</td>
+					<td>
+						{notempty name="planPositionInfo.policy_state"}
+							{$planPositionInfo.policy_state}
+						{/notempty}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</fieldset>
+<div class="layui-tab" lay-filter="headTab">
+	<ul class="layui-tab-title">
+		<li class="layui-this">留位记录</li>
+		<li>有名单记录</li>
+		<li>操作记录</li>
+	</ul>
+	<div class="layui-tab-content">
+		<div class="layui-tab-item layui-show">
+			<table id="reserveRecordList" lay-filter="reserveRecordListF"></table>
+		</div>
+		<div class="layui-tab-item">
+			<div class="layui-row">
+				<div class="layui-col-sm12" style="text-align:right;">
+					<button class="layui-btn layui-btn-normal layui-btn-sm" id="fullINTicket">总票号查看</button>
+					<button class="layui-btn layui-btn-sm" id="outPassExcel">名单导出</button>					
+				</div>
+				
+			</div>
+			<table id="definiteRecordList" lay-filter="definiteRecordListF"></table>
+		</div>
+		<div class="layui-tab-item" id="planLog">
+			数据加载中...
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/layui/layui.js"></script>
+
+<script id="definite_pass_tpl" type="text/html">
+	<div style="padding:10px;">
+		<table style="width:100%;margin-bottom:10px;text-align:center;">
+			<tr>
+				<td class="layui-hide" id="definiteRecordId">{{ d.id }}</td>
+				<td><b>名称：</b>{{ d.title }}</td>
+				<td>
+					<b>留位数量：</b>
+					<span style="color:#FFB800;" id="definite_pass_count">{{ d.definite_pass_list.length }}</span>
+				</td>
+			</tr>
+		</table>
+		<div class="layui-tab">
+			<ul class="layui-tab-title">
+				<li class="layui-this">旅客提出</li>
+				<li>票号提出</li>
+			</ul>
+			<div class="layui-tab-content">
+				<div class="layui-tab-item layui-show">
+					<textarea id="nameAndIdOut" readonly lay-verify="" placeholder="" class="layui-textarea" style="height:150px;"></textarea>
+					<div class="layui-row">
+						<div class="layui-col-sm12">
+							<button class="layui-btn layui-btn-normal layui-btn-sm" id="outPassAndId">生成并复制名单</button>					
+						</div>
+					</div>
+				</div>
+				<div class="layui-tab-item">
+					<textarea id="nameAndTicketOut" readonly lay-verify="" placeholder="" class="layui-textarea" style="height:150px;"></textarea>
+					<div class="layui-row">
+						<div class="layui-col-sm12">
+							<button class="layui-btn layui-btn-normal layui-btn-sm" id="outTicket">生成并复制票号</button>					
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<hr class="layui-bg-gray">
+		<table id="definitePassList" lay-filter="definitePassListF"></table>
+	</div>
+</script>
+<script id="in_ticket_tpl" type="text/html">
+	<div style="padding:10px;">
+		<table id="definitePassTicketList" lay-filter="definitePassTicketListF"></table>
+	</div>
+</script>
+<script>
+$(document).ready(function(){
+	
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	layui.config({
+		base: '__STATIC__/layui_exts/',
+	}).extend({
+		excel: 'excel.min',
+	});
+	layui.use(['element','form','table','layer','laytpl','laydate','excel'], function(){
+		var element = layui.element,
+		  form = layui.form,
+		  table = layui.table,
+		  layer = layui.layer,
+		  laytpl = layui.laytpl,
+		  laydate = layui.laydate,
+		  layexcel = layui.excel;
+		  
+		  
+		//选项卡切换查看操作记录
+		element.on('tab(headTab)', function(tabdata){
+			//加载历史记录
+			if(tabdata.index==2){
+				$.get('{:url("TeamPlanAdvancedView/LogViewPlanPosition")}?id='+{$planPositionInfo->id},function(data,status){
+					if(status == 'success'){
+						$('#planLog').html(data);
+					}else{
+						$('#planLog').html('数据加载失败');
+					}
+				});
+			}
+		});
+		
+		//留位记录数据表
+		table.render({
+			elem: '#reserveRecordList'
+			,id:'reserveRecordTable'
+			,height: 'full-300'
+			,url:'{:url('TeamPlanAdvancedView/ReserveRecordData')}' //数据
+			,where:{'planPositionId':{$planPositionInfo.id|json_encode}}
+			,cellMinWidth: 60 
+			,size:'sm'
+			,limit:20
+			,page:true
+			,text: {
+					none: '暂无相关数据' //默认：无数据。
+				  }
+			,cols: [[ //表头
+			  {field: 'title', title: '名称'}
+			  ,{field: 'quantity', title: '留位数量',style:'color: #FF5722;'}
+			  ,{field: 'create_time', title: '记录时间'}
+			  ,{field: 'submitter', title: '提交人'}
+			]]
+		  });
+		  //有名单记录数据表
+		table.render({
+			elem: '#definiteRecordList'
+			,id:'definiteRecordTable'
+			,height: 'full-300'
+			,url:'{:url('TeamPlanAdvancedView/DefiniteRecordData')}' //数据
+			,where:{'planPositionId':{$planPositionInfo.id|json_encode}}
+			,cellMinWidth: 60 
+			,size:'sm'
+			,limit:20
+			,page:true
+			,text: {
+					none: '暂无相关数据' //默认：无数据。
+				  }
+			,cols: [[ //表头
+			  {field: 'title', title: '名称'}
+			  ,{field: 'quantity', title: '留位数量',style:'color: #FF5722;',templet:'<div>{{ d.definite_pass_list.length }}</div>'}
+			  ,{field: 'create_time', title: '记录时间'}
+			  ,{field: 'submitter', title: '提交人'}
+			]]
+		  });
+		//总票号查看弹窗
+		$('body').on('click','#fullINTicket',function(){
+			var in_ticket_tpl = $('#in_ticket_tpl').html();
+			var inTicketHtml = laytpl(in_ticket_tpl).render({});
+			layer.open({
+				type: 1, 
+				title: false,
+				//shadeClose:true,
+				//closeBtn: 0,
+				area: ['600px','450px'],
+				content: inTicketHtml
+			});
+			//乘机人信息数据
+			table.render({
+				elem: '#definitePassTicketList'
+				,id:'definitePassTicketTable'
+				,height: 'full-400'
+				,url:'{:url('TeamPlanAdvancedView/FullDefinitePassData')}' //数据
+				,where:{'planPositionId':{$planPositionInfo.id|json_encode}}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+					{field: 'title', title: '所属名称',templet:'<div>{{ d.definite_record.title}}</div>'}
+				  ,{field: 'pass_name', title: '姓名',width:95}
+				  ,{field: 'pass_id', title: '证件号',width:170}
+				  ,{field: 'ticket_number', title: '票号'}
+				  
+				]]
+			  });
+		});
+		
+		//总名单导出
+		$('body').on('click','#outPassExcel',function(){
+			var loadindex = layer.load();
+			$.ajax({
+				type:"POST",
+				url:"{:url('TeamPlanAdvancedView/DefinitePassExcel')}",
+				data:{'planPositionId':{$planPositionInfo.id|json_encode}},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						//导出数据的处理
+						var exlData = layexcel.filterExportData(data.data, {
+							title:function(value, line, data){
+								return line['definite_record']['title'];
+							},
+							pass_name:'pass_name',
+							pass_id:'pass_id',
+							ticket_number:'ticket_number'
+						});
+						//添加表头
+						exlData.unshift({'title':'所属名称','pass_name':'姓名','pass_id':'证件号','ticket_number':'票号'});
+						//合并单元格配置
+						//var mergeConf = layexcel.makeMergeConfig(merg);
+						//导出表格
+						layexcel.exportExcel({
+							sheet1: exlData
+						}, '导出名单.xlsx', 'xlsx');
+						layer.close(loadindex); 
+					}else{				
+						layer.msg(data.message);
+						layer.close(loadindex); 
+						
+					}
+				}
+			});
+		});
+		//有名单记录表格双击
+		table.on('rowDouble(definiteRecordListF)', function(obj){
+			var definite_pass_tpl = $('#definite_pass_tpl').html();
+			var definitePassHtml = laytpl(definite_pass_tpl).render(obj.data);
+			layer.open({
+				type: 1, 
+				title: false,
+				//maxmin: true,
+				//shadeClose:true,
+				//closeBtn: 0,
+				area: ['600px','780px'],
+				content: definitePassHtml,
+				end:function(){
+					table.reload('definiteRecordTable');
+				}
+			});
+			//有名单留位数据
+			table.render({
+				elem: '#definitePassList'
+				,id:'definitePassTable'
+				,height: 'full-400'
+				,url:'{:url('TeamPlanAdvancedView/DefinitePassData')}' //数据
+				,where:{'definiteRecordId':obj.data.id}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+				  {field: 'pass_name', title: '姓名',width:95}
+				  ,{field: 'pass_id', title: '证件号',width:170}
+				  ,{field: 'ticket_number', title: '票号'}
+				]]
+			  });
+		});
+		//点击生成并复制名单（姓名和身份证）
+		$('body').on('click','#outPassAndId',function(){
+			var definiteRecordId = $('#definiteRecordId').text();
+			$.ajax({
+				async:false,
+				type:"POST",
+				url:"{:url('TeamPlanAdvancedView/OutDefinitePassData')}",
+				data:{'id':definiteRecordId},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){
+						var outInfo = '';
+						$.each(data.data,function(index, passInfo){
+							outInfo = outInfo+passInfo['pass_name']+'\t'+passInfo['pass_id']+'\n'
+						});
+						outInfo = outInfo.substring(0,outInfo.length-1)
+						$('#nameAndIdOut').val(outInfo);
+						$("#nameAndIdOut").select();
+						if (document.execCommand('copy')) {
+							layer.msg('复制成功');
+						}else{
+							layer.msg('复制失败，请手动复制');
+						}
+					}else{				
+						layer.msg(data.message);
+						
+					}
+				}
+			});
+			
+				
+		});
+		//点击生成并复制票号（姓名和票号）
+		$('body').on('click','#outTicket',function(){
+			var definiteRecordId = $('#definiteRecordId').text();
+			$.ajax({
+				async:false,
+				type:"POST",
+				url:"{:url('TeamPlanAdvancedView/OutDefinitePassData')}",
+				data:{'id':definiteRecordId},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){
+						var outInfo = '';
+						$.each(data.data,function(index, passInfo){
+							outInfo = outInfo+passInfo['pass_name']+'/'+passInfo['ticket_number']+'\n'
+						});
+						outInfo = outInfo.substring(0,outInfo.length-1)
+						$('#nameAndTicketOut').val(outInfo);
+						$("#nameAndTicketOut").select();
+						if (document.execCommand('copy')) {
+							layer.msg('复制成功');
+						}else{
+							layer.msg('复制失败，请手动复制');
+						}
+					}else{				
+						layer.msg(data.message);
+						
+					}
+				}
+			});
+			
+				
+		});
+		
+	});
+});
+
+</script>
+</body>
+</html>

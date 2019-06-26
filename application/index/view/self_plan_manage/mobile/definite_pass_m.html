@@ -1,0 +1,822 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+	<link href="__STATIC__/MUI/css/mui.picker.min.css" rel="stylesheet"/>
+</head>
+<body>
+	<!-- 主界面不动、菜单移动 -->
+	<!-- 侧滑导航根容器 -->
+	<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable mui-slide-in">
+		  <!-- 菜单容器 -->
+		  <aside class="mui-off-canvas-right" id="offCanvasSide">
+			<div class="mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!-- 菜单具体展示内容 -->
+				<div style="margin:10px;">
+					<div class="title" style="margin-bottom:25px;margin: 35px 15px 10px;color: #fff;">操作</div>
+					<div style="margin:10px;">
+						<a href="#definiteEditPop" id="edit" class="mui-btn mui-btn-warning mui-btn-block" style="padding:8px;">编辑</a>
+						<button type="button" id="dele" class="mui-btn mui-btn-danger mui-btn-block" style="padding:8px;">删除</button>
+					</div>
+				</div>
+			  </div>
+			</div>
+		  </aside>
+		  <!-- 主页面容器 -->
+		<div class="mui-inner-wrap">
+			<!-- 主页面标题 -->
+			<header class="mui-bar mui-bar-nav">
+				<a id="black_a" class="mui-icon mui-icon-left-nav mui-pull-left"></a>
+				<a class="mui-icon mui-icon-bars mui-pull-right" href="#sheet1"></a>
+				<h1 class="mui-title">有名单留位管理</h1>
+			</header>
+			<div class="mui-content mui-scroll-wrapper">
+				<div id="header_title" style="width:100%;padding:10px;position:relative;z-index:999;background-color:#DCDCDC;font-size:15px;">
+					<table style="width:100%;">
+						<tr>
+							<td>
+								<i>名称</i><br>
+								{$definiteInfo.title}
+							</td>
+							<td style="float:right;">
+								<i>留位数量</i><br>
+								<span style="color:red;">{$definiteInfo.definite_pass_list|count}</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- 主界面具体展示内容 -->
+				<div style="padding: 10px 10px;background-color:#efeff4;position:relative;z-index:999;">
+					<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-primary">
+						<a class="mui-control-item mui-active" href="#passInDiv">旅客录入</a>
+						<a class="mui-control-item" href="#ticketInDiv">票号回填</a>
+						<a class="mui-control-item" href="#passOutDiv">旅客提出</a>
+						<a class="mui-control-item" href="#ticketOutDiv">票号提出</a>
+						<a class="mui-control-item" href="#recoveryPass">恢复信息</a>
+					</div>
+				</div>
+				<div class="mui-scroll">
+					<div>
+						<div id="passInDiv" class="mui-control-content mui-active">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndIdIN" rows="5" style="margin-bottom:0px;font-size:15px;" placeholder="请输入名单，每行一个，包含名字和身份证号码。重名信息请单独填写"></textarea>
+							</div>
+							<button type="button" id="addPassAndId" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								录入名单
+							</button>
+						</div>
+						<div id="ticketInDiv" class="mui-control-content">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndTicketIN" rows="5" style="margin-bottom:0px;font-size:15px;" placeholder="请输入带票号的名单，每行一个，包含名字和票号。系统将自动按照姓名填写对应票号。重名信息请单独填写"></textarea>
+							</div>
+							<button type="button" id="addTicket" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								录入票号
+							</button>
+						</div>
+						<div id="passOutDiv" class="mui-control-content">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndIdOut" rows="5" readonly style="margin-bottom:0px;font-size:15px;" placeholder=""></textarea>
+							</div>
+							<button type="button" id="outPassAndId" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								生成并复制名单
+							</button>
+						</div>
+						<div id="ticketOutDiv" class="mui-control-content">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndTicketOut" rows="5" readonly style="margin-bottom:0px;font-size:15px;" placeholder=""></textarea>
+							</div>
+							<button type="button" id="outTicket" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								生成并复制票号
+							</button>
+						</div>
+						<div id="recoveryPass" class="mui-control-content" style="height:175px;">
+							<div class="mui-scroll-wrapper">
+								<div class="mui-scroll">
+									<ul class="mui-table-view" id="recoveryPassList">
+										{volist name="passSoftInfo" id="item"}
+											<li style="color:#FFA500;" class="mui-table-view-cell" data-id="{$item.id}" data-pass_name="{$item.pass_name}" data-pass_id="{$item.pass_id}" data-ticket_number="{$item.ticket_number}">
+												<a href="#passSoftInfoMenu">
+													<table style="width:100%;font-size:12px;">
+														<tr>
+															<td style="width:20%;">{$item.pass_name}</td>
+															<td style="width:45%;">{$item.pass_id}</td>
+															<td style="width:35%;">{$item.ticket_number}</td>
+														</tr>
+													</table>
+												</a>
+											 </li>
+										{/volist}
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div style="text-align:right;">
+						<a href="#passAddPop" class="mui-btn mui-btn-success" style="margin-bottom:10px;">
+							新增单个名单
+						</a>
+					</div>
+					<ul class="mui-table-view" id="passList">
+						{volist name="definiteInfo.definite_pass_list" id="item"}
+						 <li class="mui-table-view-cell" data-id="{$item.id}" data-pass_name="{$item.pass_name}" data-pass_id="{$item.pass_id}" data-ticket_number="{$item.ticket_number}">
+							<a href="#passInfoMenu">
+								<table style="width:100%;font-size:12px;">
+									<tr>
+										<td style="width:20%;">{$item.pass_name}</td>
+										<td style="width:45%;">{$item.pass_id}</td>
+										<td style="width:35%;">{$item.ticket_number}</td>
+									</tr>
+								</table>
+							</a>
+						 </li>
+						{/volist}
+					</ul>
+					<div class="fill_height" style="width: 100%"></div>
+					<div style="width: 100%;height:60px;"></div>
+				</div>
+			</div>  
+			<div class="mui-off-canvas-backdrop"></div>
+		</div>
+	</div>
+	<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<!-- 可选择菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#passWordChange">修改密码</a>
+		  </li>
+		  <li id="logout" class="mui-table-view-cell">
+			<a href="#">退出</a>
+		  </li>
+		</ul>
+		<!-- 取消菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#sheet1"><b>取消</b></a>
+		  </li>
+		</ul>
+	</div>
+	<div id="passInfoMenu" class="mui-popover" style="font-size:15px;width:100px;">
+		<div class="mui-popover-arrow"></div>
+		<ul class="mui-table-view">
+			<li id="passInfoEdit" class="mui-table-view-cell">
+				<a href="#passEditPop">修改</a>
+			</li>
+			<li id="passInfoDele" class="mui-table-view-cell" style="background-color:#dd524d;">
+				<a href="#">删除</a>
+			</li>
+		</ul>
+	</div>
+	<div id="passSoftInfoMenu" class="mui-popover" style="font-size:15px;width:100px;">
+		<div class="mui-popover-arrow"></div>
+		<ul class="mui-table-view">
+			<li id="passSoftInfoRecovery" class="mui-table-view-cell">
+				<a href="#">恢复</a>
+			</li>
+		</ul>
+	</div>
+	<div id="passWordChange" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>原始密码</label>
+				<input type="password" name="oldPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>新密码</label>
+				<input type="password" name="newPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>重复新密码</label>
+				<input type="password" name="repPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="passWordBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+	<div id="passAddPop" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>姓名</label>
+				<input type="text" name="pass_name" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>证件号</label>
+				<input type="text" name="pass_id" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>票号</label>
+				<input type="text" name="ticket_number" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="addPassBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+	<div id="passEditPop" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row" style="display:none;">
+				<label>id</label>
+				<input type="text" name="id" class="mui-input-clear" placeholder="输入名称">
+			</div>
+			<div class="mui-input-row">
+				<label>姓名</label>
+				<input type="text" name="pass_name" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>证件号</label>
+				<input type="text" name="pass_id" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>票号</label>
+				<input type="text" name="ticket_number" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="editPassBtn" class="mui-btn mui-btn-primary">保存</button>
+			</div>
+		</form>
+	</div>
+	<div id="definiteEditPop" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row" style="display:none;">
+				<label>id</label>
+				<input type="text" name="id" class="mui-input-clear" placeholder="输入名称" value="{$definiteInfo.id}">
+			</div>
+			<div class="mui-input-row" style="height:130px;">
+				<label>名称</label>
+				<textarea name="title" rows="5" placeholder="输入名称">{$definiteInfo.title}</textarea>
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="editDefiniteBtn" class="mui-btn mui-btn-primary">保存</button>
+			</div>
+		</form>
+	</div>
+<style>
+* {
+    touch-action: pan-y;
+}
+i{
+	color:#8f8f94;
+	font-size:12px;
+}	
+	
+</style>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script src="__STATIC__/MUI/js/mui.picker.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function () {
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	mui.init();
+	mui('.mui-scroll-wrapper').scroll({
+		indicators: true //是否显示滚动条
+	});
+	//填充高度
+	var fillHeight = $('#header_title').outerHeight(true);
+	$('.fill_height').css('height',fillHeight);
+	//修改密码提交
+	mui('#passWordChange').on('tap','#passWordBtn',function(){
+		var oldPassword = $('#passWordChange').find('input[name="oldPassword"]').val();
+		var newPassword = $('#passWordChange').find('input[name="newPassword"]').val();
+		var repPassword = $('#passWordChange').find('input[name="repPassword"]').val();
+		console.log('oldPassword');
+		if(newPassword.length<6){
+			mui.toast('密码不能少于6个字符');
+			return false;
+		}
+		if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(newPassword)){
+			
+			mui.toast('请使用英文字符和数字加“~!@#$%^&*”');
+			return false;
+		}
+		if(repPassword!=newPassword){
+			mui.toast('重复密码与第一次输入的不一致');
+			return false;
+		}
+		$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:{'oldPassword':oldPassword,'newPassword':newPassword,'repPassword':repPassword},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.href = "{:url('user/login')}";
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				}
+			});
+		
+	});
+	//点击返回
+	mui('body').on('tap','#black_a',function(){
+		window.location.href = "{:url('SelfPlanManage/PositionDetailsMobile')}?planPositionId={$definiteInfo.plan_position_id}";
+	});
+	//点击退出
+	mui('body').on('tap','#logout',function(){
+		window.location.href = "{:url('user/logout')}";
+	});
+	
+	
+	
+	//点击录入名单
+	mui('#passInDiv').on('tap','#addPassAndId',function(){
+		var nameListInfo = $('#nameAndIdIN').val();
+		if(nameListInfo!=''){
+			var nameList = formatNameList(nameListInfo); //得到格式化后的身份信息
+			if(nameList['code']==-1)//判断信息正确性
+			{
+				mui.toast(nameList['msg']);
+			}
+			else if(nameList['code']==0)
+			{
+				var definiteRecordId = {$definiteInfo.id};
+				var planPositonId = {$definiteInfo.plan_position_id};
+				var token = sessionStorage.getItem('__token__');
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/PlAddDefinitePassData')}",
+					data:{'id':definiteRecordId,'planPositonId':planPositonId,'__token__':token,'data':nameList.data},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){
+							mui.toast(data.message);
+							window.location.reload();
+						}else{				
+							mui.toast(data.message);
+						}
+					},
+					complete:function(xmlHttpRequest){
+						var token = xmlHttpRequest.getResponseHeader('__token__');
+						//console.log('__token__响应头字段：'+ token);	
+						sessionStorage.setItem('__token__',token);
+					}
+				});
+			}
+		}
+	});
+	//点击录入票号
+	mui('#ticketInDiv').on('tap','#addTicket',function(){
+		var ticketListInfo = $('#nameAndTicketIN').val();
+		if(ticketListInfo!=''){
+			var ticketList = formatTicketList(ticketListInfo); //得到格式化后的票号信息
+			if(ticketList['code']==-1)//判断信息正确性
+			{
+				mui.toast(ticketList['msg']);
+			}
+			else if(ticketList['code']==0)
+			{
+				var definiteRecordId = {$definiteInfo.id};
+				var token = sessionStorage.getItem('__token__');
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/PlAddDefiniteTicketData')}",
+					data:{'id':definiteRecordId,'__token__':token,'data':ticketList.data},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){
+							mui.toast(data.message);
+							window.location.reload();
+						}else{				
+							mui.toast(data.message);
+						}
+					},
+					complete:function(xmlHttpRequest){
+						var token = xmlHttpRequest.getResponseHeader('__token__');
+						//console.log('__token__响应头字段：'+ token);	
+						sessionStorage.setItem('__token__',token);
+					}
+				});
+			}
+		}
+	});
+	//点击生成并复制名单（姓名和身份证）
+	mui('#passOutDiv').on('tap','#outPassAndId',function(){
+		var definiteRecordId = {$definiteInfo.id};
+		$.ajax({
+			async:false,
+			type:"POST",
+			url:"{:url('SelfPlanManage/OutDefinitePassData')}",
+			data:{'id':definiteRecordId},
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){
+					var outInfo = '';
+					$.each(data.data,function(index, passInfo){
+						outInfo = outInfo+passInfo['pass_name']+'\t'+passInfo['pass_id']+'\n'
+					});
+					outInfo = outInfo.substring(0,outInfo.length-1)
+					$('#nameAndIdOut').val(outInfo);
+					$("#nameAndIdOut").select();
+					if (document.execCommand('copy')) {
+						mui.toast('复制成功');
+					}else{
+						mui.toast('复制失败，请手动复制');
+					}
+					
+				}else{				
+					mui.toast(data.message);
+					
+				}
+			}
+		});	
+	});
+	//点击生成并复制票号（姓名和票号）
+	mui('#ticketOutDiv').on('tap','#outTicket',function(){
+		var definiteRecordId = {$definiteInfo.id};
+		$.ajax({
+			async:false,
+			type:"POST",
+			url:"{:url('SelfPlanManage/OutDefinitePassData')}",
+			data:{'id':definiteRecordId},
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){
+					var outInfo = '';
+					$.each(data.data,function(index, passInfo){
+						outInfo = outInfo+passInfo['pass_name']+'/'+passInfo['ticket_number']+'\n'
+					});
+					outInfo = outInfo.substring(0,outInfo.length-1)
+					$('#nameAndTicketOut').val(outInfo);
+					$("#nameAndTicketOut").select();
+					if (document.execCommand('copy')) {
+						mui.toast('复制成功');
+					}else{
+						mui.toast('复制失败，请手动复制');
+					}
+				}else{				
+					mui.toast(data.message);
+					
+				}
+			}
+		});	
+	});
+	//新增单个名单，点击提交
+	mui('#passAddPop').on('tap','#addPassBtn',function(){
+		var plan_position_id = {$definiteInfo.plan_position_id};
+		var definite_record_id = {$definiteInfo.id};
+		var pass_name = $('#passAddPop').find('input[name="pass_name"]').val().trim();
+		var pass_id = $('#passAddPop').find('input[name="pass_id"]').val().trim();
+		var ticket_number = $('#passAddPop').find('input[name="ticket_number"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		//名字只能是英文中文和‘/’,'\'。证件号码只能是字母和数字组合。票号格式13个数字或3个数字-10个数字
+		if(/^[a-zA-Z\u4e00-\u9fa5\\\/]+$/g.test(pass_name) && /^[\w\d]+$/g.test(pass_id) && (/^\d{3}-\d{10}$|^\d{13}$/g.test(ticket_number) || ticket_number=='')){
+			
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/AddSingleDefinitePassData')}",
+				data:{'plan_position_id':plan_position_id,'definite_record_id':definite_record_id,'pass_name':pass_name,'pass_id':pass_id,'ticket_number':ticket_number,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//点击乘机人列表项设置字段
+	mui('#passList').on('tap','li',function(){
+		$('#passEditPop').find('input[name="id"]').val($(this).data('id'));
+		$('#passEditPop').find('input[name="pass_name"]').val($(this).data('pass_name'));
+		$('#passEditPop').find('input[name="pass_id"]').val($(this).data('pass_id'));
+		$('#passEditPop').find('input[name="ticket_number"]').val($(this).data('ticket_number'));
+		$('#passInfoDele').data('id',$(this).data('id'));
+	});
+	//乘机人信息修改，点击保存
+	mui('#passEditPop').on('tap','#editPassBtn',function(){
+		var id = $('#passEditPop').find('input[name="id"]').val().trim();
+		var pass_name = $('#passEditPop').find('input[name="pass_name"]').val().trim();
+		var pass_id = $('#passEditPop').find('input[name="pass_id"]').val().trim();
+		var ticket_number = $('#passEditPop').find('input[name="ticket_number"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		if(/^[a-zA-Z\u4e00-\u9fa5\\\/]+$/g.test(pass_name) && /^[\w\d]+$/g.test(pass_id) && (/^\d{3}-\d{10}$|^\d{13}$/g.test(ticket_number) || ticket_number=='')){
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/editDefinitePassData')}",
+				data:{'id':id,'pass_name':pass_name,'pass_id':pass_id,'ticket_number':ticket_number,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//点击删除乘机人信息
+	mui('#passInfoMenu').on('tap','#passInfoDele',function(e){
+		var reserveRecordID = $(this).data('id');
+		var btnArray = ['否', '是'];
+		mui.confirm('是否确认删除该信息','确认删除',btnArray, function(Cindex){
+			if(Cindex.index==1){
+				e.detail.gesture.preventDefault();
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/DeleDefinitePassData')}",
+					data:{'id':reserveRecordID},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){		
+							mui.toast(data.message);
+							window.location.reload();
+						}else{				
+							mui.toast(data.message);
+							
+						}
+					}
+				});
+			}
+		});
+	});
+	//有名单记录的编辑，点击保存
+	mui('#definiteEditPop').on('tap','#editDefiniteBtn',function(){
+		var id = $('#definiteEditPop').find('input[name="id"]').val().trim();
+		var title = $('#definiteEditPop').find('textarea[name="title"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		if(!/[<>\s]/g.test(title)){
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/editDefiniteRecordData')}",
+				data:{'id':id,'title':title,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//点击删除
+	mui('#offCanvasSide').on('tap','#dele',function(e){
+		var btnArray = ['否', '是'];
+		mui.confirm('同时会删除当前计划下的所有信息','确认删除',btnArray, function(Cindex){
+			if(Cindex.index==1){
+				e.detail.gesture.preventDefault(); //修复iOS 8.x平台存在的bug，使用plus.nativeUI.prompt会造成输入法闪一下又没了
+				var btnArray = ['取消', '确定'];
+				mui.prompt('请输入要删除的名称','','确认删除',btnArray,function(pIndex){
+					if(pIndex.index==1){
+						if(pIndex.value=='{$definiteInfo.title}'){
+							$.ajax({
+								type:"POST",
+								url:"{:url('SelfPlanManage/DeleDefiniteRecordData')}",
+								data:{'id':'{$definiteInfo.id}'},
+								dataType:'json',
+								success:function(data){
+									if(data.status==1){	
+										mui.toast(data.message);
+										window.location.href="{:url('SelfPlanManage/PositionDetailsMobile')}"+'?planPositionId={$definiteInfo.plan_position_id}';
+									}else{				
+										mui.toast(data.message);
+										
+									}
+								}
+							});
+						}else{
+								mui.toast('名称输入错误，请检查');
+						}
+					}
+				});
+			}
+		});
+	});
+	//点击软删除乘机人列表项设置字段
+	mui('#recoveryPass').on('tap','li',function(){
+		$('#passSoftInfoRecovery').data('id',$(this).data('id'));
+	});
+	//软删除，点击恢复
+	mui('#passSoftInfoMenu').on('tap','#passSoftInfoRecovery',function(e){
+		var id = $(this).data('id');
+		var btnArray = ['否', '是'];
+		mui.confirm('是否恢复到正常名单中','确认恢复',btnArray, function(Cindex){
+			if(Cindex.index==1){
+				e.detail.gesture.preventDefault(); //修复iOS 8.x平台存在的bug，使用plus.nativeUI.prompt会造成输入法闪一下又没了
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/SoftDeleRecoveryDefinitePassData')}",
+					data:{'id':id},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){	
+							mui.toast(data.message);
+							window.location.reload();
+						}else{				
+							mui.toast(data.message);
+							
+						}
+					}
+				});	
+			}
+		});
+	});
+	
+	
+});
+//******票号号名单格式化输出函数*********
+function formatTicketList(ticketData){
+	var inTextArr = ticketData.trim().split('\n');
+	var tickeList = new Object();
+	//去除多余字符
+	for(var i=0;i<inTextArr.length;i++){
+		inTextArr[i]=inTextArr[i].replace(/[&\|\\\*^%$#@：:，,;；、。./\-\s*]/g,'');
+	}
+	//去除空行
+	for(var i=0;i<inTextArr.length;i++){
+		if (inTextArr[i]==""){
+			inTextArr.splice(i,1);
+			i=i-1;
+		}
+	}
+	for(var j=0;j<inTextArr.length;j++){
+		var tickeNumIndex = inTextArr[j].search(/\d{3}-\d{10}|\d{13}/g);//票号所在字符串中的索引
+		//判断位数是否足够
+		if (tickeNumIndex<0){
+			return {'code':-1,'msg':'第'+(j+1).toString()+'个名单票号位数少于13位','data':{}};
+		}
+		else{
+			var tickeNumSArr = inTextArr[j].match(/\d{3}-\d{10}|\d{13}/g);//获取票号
+			
+			if(tickeNumIndex==0){
+				var name = inTextArr[j].substring(tickeNumIndex+tickeNumSArr.length,inTextArr[j].length);//获取名字
+				name = name.replace(/[\d\s\.\!\/_,$%^*(+\"\']+|[+——:：;；’‘”“！，。？?、~@#￥%……&*（）()【】]+/g,'');//出去名字中的特殊字符
+				var tickeNum = tickeNumSArr[0].slice(0, 3) + '-' + tickeNumSArr[0].slice(3);//票号前3位后添加"-"
+			}else if(tickeNumIndex+tickeNumSArr[0].length==inTextArr[j].length){
+				var name = inTextArr[j].substring(0,inTextArr[j].search(tickeNumSArr[0]));//获取名字
+				name = name.replace(/[\d\s\.\!\/_,$%^*(+\"\']+|[+——:：;；’‘”“！，。？?、~@#￥%……&*（）()【】]+/g,'');//出去名字中的特殊字符
+				var tickeNum = tickeNumSArr[0].slice(0, 3) + '-' + tickeNumSArr[0].slice(3);//票号前3位后添加"-"
+			}else{
+				return {'code':-1,'msg':'第'+(j+1).toString()+'个名单有错误，请检查','data':{}};
+			}
+			if(name==''){
+				return {'code':-1,'msg':'第'+(j+1).toString()+'个名单姓名不能为空','data':{}};
+			}
+			if(tickeList.hasOwnProperty(name)){
+				return {'code':-1,'msg':'第'+(j+1).toString()+'个名单姓名重名','data':{}};
+			}
+			for (na in tickeList)  // na 为属性名
+			{
+				if(tickeList[na]['ticket_number']==tickeNum){
+					return {'code':-1,'msg':'第'+(j+1).toString()+'个名单票号重复','data':{}};
+				}
+			}
+			tickeList[name]={'pass_name':name,'ticket_number':tickeNum};
+		}
+		
+	}
+	return {'code':0,'msg':'','data':tickeList};
+
+}
+//******证件号名单格式化输出函数*********
+function formatNameList(nameData){
+	var inTextArr = nameData.trim().split('\n');
+	var nameList = new Object();
+	//去除多余字符
+	for(var i=0;i<inTextArr.length;i++){
+		inTextArr[i]=inTextArr[i].replace(/[&\|\\\*^%$#@：:，,;；、。./\-\s*]/g,"");
+	}
+	//去除空行
+	for(var i=0;i<inTextArr.length;i++){
+		if (inTextArr[i]==""){
+			inTextArr.splice(i,1);
+			i=i-1;
+		}
+	}
+	for(var j=0;j<inTextArr.length;j++){
+		var idNumIndex = inTextArr[j].search(/[0-9]{17}[0-9,x,X]/g);//身份证号码所在字符串中的索引
+		
+		//判断位数是否足够
+		if (idNumIndex<0){
+			return {'code':-1,'msg':'第'+(j+1).toString()+'个名单身份证号码位数错误','data':{}};
+		}else{
+			var idNum = inTextArr[j].match(/[0-9]{17}[0-9,x,X]/g);//身份证号码
+			idNum[0] = idNum[0].replace('x','X');
+			//验证身份证号码是否正确
+			var isIdNum = checkIDCard(idNum[0]);
+			if(isIdNum===false){
+				return {'code':-1,'msg':'第'+(j+1).toString()+'个名单身份证号码错误','data':{}};
+			}
+			else{
+				if(idNumIndex==0){
+					var name = inTextArr[j].substring(idNumIndex+18,inTextArr[j].length);//获取名字
+					name = name.replace(/[\d\s\.\!\/_,$%^*(+\"\']+|[+——:：;；’‘”“！，。？?、~@#￥%……&*（）()【】]+/g,'');
+				}else if(idNumIndex+18 == inTextArr[j].length){
+					var name = inTextArr[j].substring(0,idNumIndex);//获取名字
+					name = name.replace(/[\d\s\.\!\/_,$%^*(+\"\']+|[+——:：;；’‘”“！，。？?、~@#￥%……&*（）()【】]+/g,'');
+				}else{
+					return {'code':-1,'msg':'第'+(j+1).toString()+'个名单有错误，请检查','data':{}};
+				}
+				if(name==''){
+					return {'code':-1,'msg':'第'+(j+1).toString()+'个名单姓名不能为空','data':{}};
+				}
+				if(nameList.hasOwnProperty(name)){
+					return {'code':-1,'msg':'第'+(j+1).toString()+'个名单姓名重名','data':{}};
+				}
+				for (na in nameList)  // na 为属性名
+				{
+					if(nameList[na]['pass_id']==idNum[0]){
+						return {'code':-1,'msg':'第'+(j+1).toString()+'个名单身份号码重复','data':{}};
+					}
+				}
+				nameList[name]={'pass_name':name,'pass_id':idNum[0]};
+			}
+		}
+		
+	}
+	return {'code':0,'msg':'','data':nameList};
+
+
+}
+//*****身份证号码验证函数******	
+// 函数参数必须是字符串，因为二代身份证号码是十八位，而在javascript中，十八位的数值会超出计算范围，造成不精确的结果，导致最后两位和计算的值不一致，从而该函数出现错误。
+// 详情查看javascript的数值范围
+function checkIDCard(idcode){
+	// 加权因子
+	var weight_factor = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2];
+	// 校验码
+	var check_code = ['1', '0', 'X' , '9', '8', '7', '6', '5', '4', '3', '2'];
+
+	var code = idcode + "";
+	var last = idcode[17];//最后一个
+
+	var seventeen = code.substring(0,17);
+
+	// ISO 7064:1983.MOD 11-2
+	// 判断最后一位校验码是否正确
+	var arr = seventeen.split("");
+	var len = arr.length;
+	var num = 0;
+	for(var i = 0; i < len; i++){
+		num = num + arr[i] * weight_factor[i];
+	}
+	
+	// 获取余数
+	var resisue = num%11;
+	var last_no = check_code[resisue];
+
+	// 格式的正则
+	// 正则思路
+	/*
+	第一位不可能是0
+	第二位到第六位可以是0-9
+	第七位到第十位是年份，所以七八位为19或者20
+	十一位和十二位是月份，这两位是01-12之间的数值
+	十三位和十四位是日期，是从01-31之间的数值
+	十五，十六，十七都是数字0-9
+	十八位可能是数字0-9，也可能是X
+	*/
+	var idcard_patter = /^[1-9][0-9]{5}([1][9][0-9]{2}|[2][0][0|1][0-9])([0][1-9]|[1][0|1|2])([0][1-9]|[1|2][0-9]|[3][0|1])[0-9]{3}([0-9]|[X])$/;
+
+	// 判断格式是否正确
+	var format = idcard_patter.test(idcode);
+
+	// 返回验证结果，校验码和格式同时正确才算是合法的身份证号码
+	return last === last_no && format ? true : false;
+}
+</script>
+</body>
+</html>

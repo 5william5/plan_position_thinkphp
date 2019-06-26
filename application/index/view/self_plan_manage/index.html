@@ -1,0 +1,1102 @@
+﻿{extend name="public/base"/}
+
+{block name="seo"}
+<title>团队计划位管理系统</title>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+{/block}
+
+{block name="content"}
+<div class="layui-body">
+    <div style="padding: 15px;">
+		<div class="layui-form">
+			<table style="border-collapse:separate; border-spacing:10px 10px;">
+				<tbody>
+					<tr>
+						<td>
+							<span>航线三字码:</span>
+						</td>
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" class="layui-input" id="searchAirLine" name="searchAirLine" placeholder="" style="width:200px;">
+							</div>
+						</td>
+						<td>
+							<span>月份:</span>
+						</td>
+						<td>
+							<div class="layui-input-inline">
+								<input type="text"name="searchMonth" id="searchMonth" class="layui-input"placeholder="">
+							</div>
+						</td>
+						<td style="width:200px;">
+							<button class="layui-btn layui-btn-fluid" id="search" >搜索</button> 
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<hr class="layui-bg-black">
+			<div class="layui-row">
+				<div class="layui-col-md4 airLineListDiv">
+					<button class="layui-btn" id="addAirLineBut">新增计划位</button>
+					<a href="#" id="leftAirLineTable" style="float:right;"><i class="layui-icon layui-icon-prev"></i></a>
+				</div>
+				<div class="layui-col-md8 planPositonListDiv">
+					<a href="#" id="rightAirLineTable" class="layui-hide"><i class="layui-icon layui-icon-next"></i></a>
+					<span style="margin-left:15px;">日期筛选：</span>
+					<div class="layui-input-inline">
+						<input type="text" id="filterAirDate" readonly class="layui-input" style="width:220px;">
+					</div>
+					
+					<button class="layui-btn" id="logThisPlan" airLineId="" style="width:120px;float:right;margin-left:15px;">操作记录</button>
+					<button class="layui-btn layui-btn-normal" id="addThisPlan" airLineId="" style="width:200px;float:right;">当前航线新增计划位</button>
+				</div>
+			</div>
+		    <div class="layui-row">
+				<div class="layui-col-md4 airLineListDiv">
+					<table id="airLineList" lay-filter="airLineListF"></table>
+				</div>
+				<div class="layui-col-md8 planPositonListDiv">
+					<table id="planPositonList" lay-filter="planPositonListF"></table>
+				</div>
+			</div>
+			
+	</div>
+</div>
+{/block}
+
+{block name="js"}
+<style>
+	.layui-table-cell{
+	   height:auto;
+	}
+	.layui-table-view .layui-table[lay-size=sm] .layui-table-cell{
+		height:auto;
+	}
+	.layui-table-fixed{
+		display:none;
+	}
+	.plan_list_date_td{
+		width:85px;
+	}
+	.plan_list_seat_td{
+		width:50px;
+	}
+	.plan_list_price_td{
+		width:70px;
+	}
+	.plan_list_policy_state_td{
+		width:90px;
+	}
+	.plan_time_limit_td{
+		width:130px;
+	}
+
+</style>
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/html" id="remain_seat_tpl">
+	{{# var remain_seat = 0;
+		$.each(d.reserve_record, function(index, value) {
+			remain_seat = remain_seat+value['quantity'];
+		});
+	}}
+	{{ d.seat_number-remain_seat-d.definite_pass.length}}
+	
+</script>
+<script type="text/html" id="reserved_seat_tpl">
+	{{# var reserved_seat = 0;
+		$.each(d.reserve_record, function(index, value) {
+			reserved_seat = reserved_seat+value['quantity'];
+		});
+	}}
+	{{ reserved_seat+d.definite_pass.length}}
+	
+</script>
+<script type="text/html" id="time_limit_tpl">
+	{{# var nowTime = new Date().getTime();
+		var timeLimit = new Date(d.time_limit).getTime();
+		if(timeLimit>nowTime){
+			var hour = (timeLimit-nowTime)/1000/60/60;
+			if(hour<24){
+	}}
+				<span style="color:#FF5722;">{{ d.time_limit }}</span>
+	{{#
+			}else{
+	}}
+				<span style="color:#666;">{{ d.time_limit }}</span>
+	{{#		}
+		}else{
+	}}
+			<span style="color:#666;">{{ d.time_limit }}</span>
+	{{#	}
+	}}
+	
+</script>
+<script type="text/html" id="air_line_info_tpl">
+	{{#
+		var tripInfoArr = [];
+		if(/&/g.test(d.air_line_text)){
+			var vAirPortArr = d.air_line_text.split('&');
+			var tripN = 0;
+			$.each(vAirPortArr,function(index, vAirPort){
+				var tripf = vAirPort.split('-');
+				for (var i=0; i<=tripf.length-1; i++){
+					if(i>0){
+						tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+						tripN = tripN+1;
+					}
+				}
+			});
+			var flightArr = d.flight.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}else{
+			var tripN = 0;
+			var tripf = d.air_line_text.split('-');
+			for (var i=0; i<=tripf.length-1; i++){
+				if(i>0){
+					tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+					tripN = tripN+1;
+				}
+			}
+			var flightArr = d.flight.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}
+	}}
+	{{#  layui.each(tripInfoArr,function(index,val){ }}
+		{{ val }}<br>	
+	{{#	}); }}
+	
+	
+</script>
+<script type="text/html" id="plan_air_line_info_tpl">
+	{{#
+		var tripInfoArr = [];
+		if(/&/g.test(d.air_line.air_line_text)){
+			var vAirPortArr = d.air_line.air_line_text.split('&');
+			var tripN = 0;
+			$.each(vAirPortArr,function(index, vAirPort){
+				var tripf = vAirPort.split('-');
+				for (var i=0; i<=tripf.length-1; i++){
+					if(i>0){
+						tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+						tripN = tripN+1;
+					}
+				}
+			});
+			var flightArr = d.air_line.flight.split('-');
+			var air_timeArr =d.air_time.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index]+' '+air_timeArr[index];
+			});
+		}else{
+			var tripN = 0;
+			var tripf = d.air_line.air_line_text.split('-');
+			for (var i=0; i<=tripf.length-1; i++){
+				if(i>0){
+					tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+					tripN = tripN+1;
+				}
+			}
+			var flightArr = d.air_line.flight.split('-');
+			var air_timeArr =d.air_time.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index]+' '+air_timeArr[index];
+			});
+		}
+	}}
+	{{#  layui.each(tripInfoArr,function(index,val){ }}
+		{{ val }}<br>	
+	{{#	}); }}
+	
+	
+</script>
+<script type="text/html" id="differ_days_tpl">
+	{{# var differ_daysArr =d.differ_days.split('-');
+		layui.each(differ_daysArr,function(index,val){ 
+	}}
+		{{ val }}<br>	
+	{{#	}); }}
+</script>
+<script type="text/html" id="edit_plan_tpl">
+	{{#
+		var tripInfoArr = [];
+		if(/&/g.test(d.air_line.air_line_text)){
+			var vAirPortArr = d.air_line.air_line_text.split('&');
+			var tripN = 0;
+			$.each(vAirPortArr,function(index, vAirPort){
+				var tripf = vAirPort.split('-');
+				for (var i=0; i<=tripf.length-1; i++){
+					if(i>0){
+						tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+						tripN = tripN+1;
+					}
+				}
+			});
+			var flightArr = d.air_line.flight.split('-');
+			var air_timeArr =d.air_time.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}else{
+			var tripN = 0;
+			var tripf = d.air_line.air_line_text.split('-');
+			for (var i=0; i<=tripf.length-1; i++){
+				if(i>0){
+					tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+					tripN = tripN+1;
+				}
+			}
+			var flightArr = d.air_line.flight.split('-');
+			var air_timeArr =d.air_time.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}
+	}}
+	<div class="layui-form" lay-filter="editPlanForm">
+		<table class="layui-table" lay-size="sm">
+			<thead>
+				<tr>
+					<td class="layui-hide">计划位id</td>
+					<td>行程</td>
+					{{# if(d.departure_date_1!=null){ }}
+						<td>第1程日期</td>
+					{{# } }}
+					{{# if(d.departure_date_2!=null){ }}
+						<td>第2程日期</td>
+					{{# } }}
+					{{# if(d.departure_date_3!=null){ }}
+						<td>第3程日期</td>
+					{{# } }}
+					{{# if(d.departure_date_4!=null){ }}
+						<td>第4程日期</td>
+					{{# } }}
+					<td>座位数</td>
+					<td>最低销售价</td>
+					<td>含税底价</td>
+					<td>出票时限</td>
+					<td>状态</td>
+					<td>操作</td>
+				</tr>
+			</thead>
+			<tbody id="edit_plan_table">
+				<tr>
+					<td class="layui-hide" id='planPositonId'>{{ d.id }}</td>
+					<td>{{#  layui.each(tripInfoArr,function(index,val){ }}
+							{{ val }}<br>	
+						{{#	}); }}
+					</td>
+					{{# if(d.departure_date_1!=null){ }}
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" name="departure_date_1" lay-verify="required|airDate" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ d.departure_date_1 }}">
+							</div>
+							<div class="layui-input-inline">
+								<input type="text" name="air_time1" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ air_timeArr[0] }}">
+							</div>
+						</td>
+					{{# } }}
+					{{# if(d.departure_date_2!=null){ }}
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" name="departure_date_2" lay-verify="required|airDate" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ d.departure_date_2 }}">
+							</div>
+							<div class="layui-input-inline">
+								<input type="text" name="air_time2" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ air_timeArr[1] }}">
+							</div>
+						</td>
+					{{# } }}
+					{{# if(d.departure_date_3!=null){ }}
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" name="departure_date_3" lay-verify="required|airDate" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ d.departure_date_3 }}">
+							</div>
+							<div class="layui-input-inline">
+								<input type="text" name="air_time3" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ air_timeArr[2] }}">
+							</div>
+						</td>
+					{{# } }}
+					{{# if(d.departure_date_4!=null){ }}
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" name="departure_date_4" lay-verify="required|airDate" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ d.departure_date_4 }}">
+							</div>
+							<div class="layui-input-inline">
+								<input type="text" name="air_time4" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ air_timeArr[3] }}">
+							</div>
+						</td>
+					{{# } }}
+					<td>
+						<input type="text" name="seat_number" lay-verify="required|seat" placeholder="" autocomplete="off" class="layui-input plan_list_seat_td" value="{{ d.seat_number }}">
+					</td>
+					<td>
+						<input type="text" name="selling_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="{{ d.selling_price }}">
+					</td>
+					<td>
+						<input type="text" name="reserve_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="{{ d.reserve_price }}">
+					</td>
+					<td>
+						<input type="text" name="time_limit" lay-verify="required|timeLimit" placeholder="" autocomplete="off" class="layui-input plan_time_limit_td" value="{{ d.time_limit }}">
+					</td>
+					<td class=" plan_list_policy_state_td">
+						<select name="policy_state" lay-verify="">
+							<option value=""></option>
+							<option value="取消" {{ d.policy_state=='取消'?'selected':'' }}>取消</option>
+							<option value="已出票" {{ d.policy_state=='已出票'?'selected':'' }}>已出票</option>
+						</select>  
+					</td>
+					<td><button class="layui-btn layui-btn-xs" id="editPlanBtn" lay-submit lay-filter="editPlanBtn">保存</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</script>
+<script type="text/html" id="add_plan_tpl">
+	{{#
+		var tripInfoArr = [];
+		if(/&/g.test(d.air_line_text)){
+			var vAirPortArr = d.air_line_text.split('&');
+			var tripN = 0;
+			$.each(vAirPortArr,function(index, vAirPort){
+				var tripf = vAirPort.split('-');
+				for (var i=0; i<=tripf.length-1; i++){
+					if(i>0){
+						tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+						tripN = tripN+1;
+					}
+				}
+			});
+			var flightArr = d.flight.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}else{
+			var tripN = 0;
+			var tripf = d.air_line_text.split('-');
+			for (var i=0; i<=tripf.length-1; i++){
+				if(i>0){
+					tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+					tripN = tripN+1;
+				}
+			}
+			var flightArr = d.flight.split('-');
+			$.each(tripInfoArr,function(index,vtrip){
+				tripInfoArr[index] = vtrip+' '+flightArr[index];
+			});
+		}
+	}}
+	<div class="layui-form" lay-filter="addPlanForm">
+		<table class="layui-table" lay-size="sm">
+			<thead>
+				<tr>
+					<td class="layui-hide">航线id</td>
+					<td>行程</td>
+					{{# for(var i=1;i<=tripN;i++){ }}
+						<td>第{{ i }}程日期</td>
+					{{# } }}
+					
+					<td>座位数</td>
+					<td>最低销售价</td>
+					<td>含税底价</td>
+					<td>出票时限</td>
+					<td>操作</td>
+				</tr>
+			</thead>
+			<tbody id="add_plan_table">
+				<tr>
+					<td class="layui-hide" id='airLineId'>{{ d.id }}</td>
+					<td>{{#  layui.each(tripInfoArr,function(index,val){ }}
+							{{ val }}<br>	
+						{{#	}); }}
+					</td>
+					{{# for(var i=1;i<=tripN;i++){ }}
+						<td>
+							<div class="layui-input-inline">
+								<input type="text" name="departure_date_{{ i }}" lay-verify="required|airDate" placeholder="日期" autocomplete="off" class="layui-input plan_list_date_td" value="">
+							</div>
+							<div class="layui-input-inline">
+								<input type="text" name="air_time{{ i }}" lay-verify="required|AirTime" placeholder="时间" autocomplete="off" class="layui-input plan_list_date_td" value="">
+							</div>
+						</td>
+					{{# } }}
+					<td><input type="text" name="seat_number" lay-verify="required|seat" placeholder="" autocomplete="off" class="layui-input plan_list_seat_td" value=""></td>
+					<td><input type="text" name="selling_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value=""></td>
+					<td><input type="text" name="reserve_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value=""></td>
+					<td><input type="text" name="time_limit" lay-verify="required|timeLimit" placeholder="" autocomplete="off" class="layui-input plan_time_limit_td" value=""></td>
+					<td><button class="layui-btn" id="addPlanBtn" lay-submit lay-filter="addPlanBtn">提交</button></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</script>
+<script type="text/html" id="SetCol">
+	<div class="layui-btn-group">
+		<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="dele">删除</a>
+	</div>
+</script>
+<script type="text/javascript">
+$(document).ready(function(){
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	//加载模块
+	layui.use(['element','form','table','layer','laytpl','laydate'], function(){
+	  var element = layui.element,
+		  form = layui.form,
+		  table = layui.table,
+		  layer = layui.layer,
+		  laytpl = layui.laytpl,
+		  laydate = layui.laydate;
+		//左侧菜单样式设置
+		$('#menu-0').parent().addClass('layui-nav-itemed');
+		$('#menu-0-1').parent().addClass('layui-this');
+		//月份选择器
+	  laydate.render({
+		elem: '#searchMonth'
+		,type: 'month'
+	  });
+	  //计划位数据表格，日期过滤加载
+		laydate.render({ 
+			elem: '#filterAirDate'
+			,range: '~'
+			//,min:'2019-06-01'
+			//,max:'2019-06-30'
+			,done: function(value, date, endDate){
+				var srtDateArr = value.split(' ~ ');
+				var leftDate = srtDateArr[0];
+				var rightDate = srtDateArr[1];
+				table.reload('planPositonTable', {
+				  where: {'leftDate':leftDate,'rightDate':rightDate}
+				
+				});	
+			}
+		});
+		//航线数据表格  
+	  table.render({
+		elem: '#airLineList'
+		,id:'airLineTable'
+		,height: 'full-300'
+		//,width:400
+		,url: '{:url('SelfPlanManage/TeamAirLineData')}' //数据接口
+		,page:true
+		,limit: 10
+		,cellMinWidth: 60 
+		,text: {
+				none: '暂无相关数据' //默认：无数据。
+			  }
+		,cols: [[ //表头
+			{field: 'air_line_code', title: '航线三字码'}
+			,{field: 'air_line_info', title: '航线',templet:'#air_line_info_tpl',width:205}
+			,{field: 'differ_days', title: '天数',templet:'#differ_days_tpl',width:60}		  
+			,{field: 'month', title: '月份',width:90}
+			,{fixed: 'right', title:'操作', toolbar: '#SetCol',width:90}
+		]]
+	  });
+	  //计划位数据表格  
+	  table.render({
+		elem: '#planPositonList'
+		,id:'planPositonTable'
+		,height: 'full-300'
+		,data: [] //数据
+		,cellMinWidth: 60 
+		,size:'sm'
+		,text: {
+				none: '暂无相关数据' //默认：无数据。
+			  }
+		,cols: [[ //表头
+		  {field: 'air_line_text', title: '行程'}
+		  ,{field: 'departure_date_1', title: '第一程日期',minWidth:100}
+		  ,{field: 'departure_date_2', title: '第二程日期',minWidth:100}
+		  ,{field: 'departure_date_3', title: '第三程日期',minWidth:100}
+		  ,{field: 'departure_date_4', title: '第四程日期',minWidth:100}
+		  ,{field: 'seat_number', title: '座位数',width:70}
+		  ,{field: 'reserved_seat', title: '留位',width:70}
+		  ,{field: 'remain_seat', title: '余位',style:'color: #FF5722;' ,width:60}
+		  ,{field: 'selling_price', title: '最低销售价'}
+		  ,{field: 'reserve_price', title: '含税底价'}
+		  ,{field: 'time_limit', title: '出票时限'}
+		  ,{field: 'group_id', title: '部门',templet: '<div>{{ d.group_name.title+"--"+d.air_line.manager }}</div>'}
+		  ,{field: 'policy_state', title: '状态'}
+		  ,{fixed: 'right', title:'操作', toolbar: '#SetCol'}
+		]]
+	  });
+	  
+	  //点击航线表格行时执行
+	  table.on('row(airLineListF)', function(obj){
+		var airLinedata = obj.data;
+		var tripN = 0;//行程数量
+		var airLineId = airLinedata['id'];
+		if(/,/g.test(airLinedata['air_line_code'])){
+			var vCodeArr = airLinedata['air_line_code'].split(',');
+			$.each(vCodeArr,function(index, vCode){
+				tripN = tripN+(vCode.length/3-1);
+			});
+		}else{
+			tripN = airLinedata['air_line_code'].length/3-1;
+		}
+		//一个行程 
+		if(tripN==1){ 
+			table.render({
+				elem: '#planPositonList'
+				,id:'planPositonTable'
+				,height: 'full-300'
+				,url:'{:url('SelfPlanManage/TeamPLanPositionData')}' //数据
+				,where:{'airLineId':airLineId}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+				  {field: 'trip', title: '行程',templet: '#plan_air_line_info_tpl',width:200}
+				  ,{field: 'departure_date_1', title: '第一程日期',minWidth:100}
+				  //,{field: 'departure_date_2', title: '第二程日期',minWidth:100}
+				  //,{field: 'departure_date_3', title: '第三程日期',minWidth:100}
+				  //,{field: 'departure_date_4', title: '第四程日期',minWidth:100}
+				  ,{field: 'seat_number', title: '座位数',width:70}
+				  ,{field: 'reserved_seat', title: '留位',templet: '#reserved_seat_tpl',width:70}
+				  ,{field: 'remain_seat', title: '余位',style:'color: #FF5722;',templet: '#remain_seat_tpl' ,width:60}
+				  ,{field: 'selling_price', title: '最低销售价'}
+				  ,{field: 'reserve_price', title: '含税底价'}
+				  ,{field: 'time_limit', title: '出票时限',templet:'#time_limit_tpl',width:130}
+				  ,{field: 'group_id', title: '部门',templet: '<div>{{ d.group_name.title+"--"+d.air_line.manager }}</div>'}
+				  ,{field: 'policy_state', title: '状态'}
+				  ,{fixed: 'right', title:'操作', toolbar: '#SetCol'}
+				]]
+			  });
+			  $('#filterAirDate').val('');
+			  $('#addThisPlan').attr('airLineId',airLineId);
+			  $('#logThisPlan').attr('airLineId',airLineId);
+			  
+		//二个行程
+		}else if(tripN==2){
+			table.render({
+				elem: '#planPositonList'
+				,id:'planPositonTable'
+				,height: 'full-300'
+				,url:'{:url('SelfPlanManage/TeamPLanPositionData')}' //数据
+				,where:{'airLineId':airLineId}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+				  {field: 'trip', title: '行程',templet: '#plan_air_line_info_tpl',width:200}
+				  ,{field: 'departure_date_1', title: '第一程日期',minWidth:100}
+				  ,{field: 'departure_date_2', title: '第二程日期',minWidth:100}
+				  //,{field: 'departure_date_3', title: '第三程日期',minWidth:100}
+				  //,{field: 'departure_date_4', title: '第四程日期',minWidth:100}
+				  ,{field: 'seat_number', title: '座位数',width:70}
+				  ,{field: 'reserved_seat', title: '留位',templet: '#reserved_seat_tpl',width:70}
+				  ,{field: 'remain_seat', title: '余位',style:'color: #FF5722;',templet: '#remain_seat_tpl' ,width:60}
+				  ,{field: 'selling_price', title: '最低销售价'}
+				  ,{field: 'reserve_price', title: '含税底价'}
+				  ,{field: 'time_limit', title: '出票时限',templet:'#time_limit_tpl',width:130}
+				  ,{field: 'group_id', title: '部门',templet: '<div>{{ d.group_name.title+"--"+d.air_line.manager }}</div>'}
+				   ,{field: 'policy_state', title: '状态'}
+				  ,{fixed: 'right', title:'操作', toolbar: '#SetCol'}
+				]]
+			  });
+			  $('#filterAirDate').val('');
+			  $('#addThisPlan').attr('airLineId',airLineId);
+			  $('#logThisPlan').attr('airLineId',airLineId);
+		
+		//三个行程
+		}else if(tripN==3){
+			table.render({
+				elem: '#planPositonList'
+				,id:'planPositonTable'
+				,height: 'full-300'
+				,url:'{:url('SelfPlanManage/TeamPLanPositionData')}' //数据
+				,where:{'airLineId':airLineId}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+				  {field: 'trip', title: '行程',templet: '#plan_air_line_info_tpl',width:200}
+				  ,{field: 'departure_date_1', title: '第一程日期',minWidth:100}
+				  ,{field: 'departure_date_2', title: '第二程日期',minWidth:100}
+				  ,{field: 'departure_date_3', title: '第三程日期',minWidth:100}
+				  //,{field: 'departure_date_4', title: '第四程日期',minWidth:100}
+				  ,{field: 'seat_number', title: '座位数',width:70}
+				  ,{field: 'reserved_seat', title: '留位',templet: '#reserved_seat_tpl',width:70}
+				  ,{field: 'remain_seat', title: '余位',style:'color: #FF5722;',templet: '#remain_seat_tpl' ,width:60}
+				  ,{field: 'selling_price', title: '最低销售价'}
+				  ,{field: 'reserve_price', title: '含税底价'}
+				  ,{field: 'time_limit', title: '出票时限',templet:'#time_limit_tpl',width:130}
+				  ,{field: 'group_id', title: '部门',templet: '<div>{{ d.group_name.title+"--"+d.air_line.manager }}</div>'}
+				  ,{field: 'policy_state', title: '状态'}
+				  ,{fixed: 'right', title:'操作', toolbar: '#SetCol'}
+				]]
+			  });
+			  $('#filterAirDate').val('');
+			  $('#addThisPlan').attr('airLineId',airLineId);
+			  $('#logThisPlan').attr('airLineId',airLineId);
+		//四个行程
+		}else if(tripN==4){
+			table.render({
+				elem: '#planPositonList'
+				,id:'planPositonTable'
+				,height: 'full-300'
+				,url:'{:url('SelfPlanManage/TeamPLanPositionData')}' //数据
+				,where:{'airLineId':airLineId}
+				,cellMinWidth: 60 
+				,size:'sm'
+				,limit:60
+				,limits:[60,120,180]
+				,page:true
+				,text: {
+						none: '暂无相关数据' //默认：无数据。
+					  }
+				,cols: [[ //表头
+				  {field: 'trip', title: '行程',templet: '#plan_air_line_info_tpl',width:200}
+				  ,{field: 'departure_date_1', title: '第一程日期',minWidth:100}
+				  ,{field: 'departure_date_2', title: '第二程日期',minWidth:100}
+				  ,{field: 'departure_date_3', title: '第三程日期',minWidth:100}
+				  ,{field: 'departure_date_4', title: '第四程日期',minWidth:100}
+				  ,{field: 'seat_number', title: '座位数',width:70}
+				  ,{field: 'reserved_seat', title: '留位',templet: '#reserved_seat_tpl',width:70}
+				  ,{field: 'remain_seat', title: '余位',style:'color: #FF5722;',templet: '#remain_seat_tpl' ,width:60}
+				  ,{field: 'selling_price', title: '最低销售价'}
+				  ,{field: 'reserve_price', title: '含税底价'}
+				  ,{field: 'time_limit', title: '出票时限',templet:'#time_limit_tpl',width:130}
+				  ,{field: 'group_id', title: '部门',templet: '<div>{{ d.group_name.title+"--"+d.air_line.manager }}</div>'}
+				  ,{field: 'policy_state', title: '状态'}
+				  ,{fixed: 'right', title:'操作', toolbar: '#SetCol'}
+				]]
+			  });
+			  $('#filterAirDate').val('');
+			  $('#addThisPlan').attr('airLineId',airLineId);
+			  $('#logThisPlan').attr('airLineId',airLineId);
+		}
+		});
+		//隐藏航线表
+		$('#leftAirLineTable').on('click',function(){
+			$('.airLineListDiv').addClass('layui-hide');
+			$('.planPositonListDiv').removeClass('layui-col-md8');
+			$('#rightAirLineTable').removeClass('layui-hide');
+			$('.planPositonListDiv').addClass('layui-col-md12');
+			table.resize('planPositonTable');
+		});
+		//显示航线表
+		$('#rightAirLineTable').on('click',function(){
+			$('.airLineListDiv').removeClass('layui-hide');
+			$('.planPositonListDiv').removeClass('layui-col-md12');
+			$('#rightAirLineTable').addClass('layui-hide');
+			$('.planPositonListDiv').addClass('layui-col-md8');
+			table.resize('planPositonTable');
+			table.resize('airLineTable');
+		});
+		//搜素航线三字码输入自动大写
+		$('body').on('input propertychange','#searchAirLine',function(event){
+			$(this).val($(this).val().toUpperCase());
+		});
+		//点击搜索按钮
+		$('#search').on('click',function(){
+			table.reload('airLineTable', {
+			  url:'{:url('SelfPlanManage/TeamAirLineSearchData')}'
+			  ,where: { //设定异步数据接口的额外参数，任意设
+				air_line_code: $('#searchAirLine').val()
+				,month: $('#searchMonth').val()
+			  }
+			  ,page: {
+				curr: 1 //重新从第 1 页开始
+			  }
+			  ,text: {
+				none: '暂无相关数据' //默认：无数据。
+			  }
+			});	
+		});
+		//单击新增计划位按钮执行
+		$('#addAirLineBut').on('click',function(){
+			layer.open({
+				type: 2, 
+				//shadeClose: true,
+				//shade: false,
+				maxmin: true, //开启最大化最小化按钮
+				area: ['1400px', '800px'],
+				content: '{:url('SelfPlanManage/AddPlanPosition')}',
+				end:function(){
+					table.reload('airLineTable');
+				}
+			});
+		});
+		//单击当前航线新增计划位
+		$('#addThisPlan').on('click',function(){
+			var airLineId = $(this).attr('airLineId');
+			if(airLineId!=''){
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/GetAirLineInfo')}",
+					data:{'airLineId':airLineId},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){	
+							var add_plan_tpl = $('#add_plan_tpl').html();
+							var addPlanHtml = laytpl(add_plan_tpl).render(data.data);
+							layer.open({
+								type: 1, 
+								title: false,
+								shadeClose:true,
+								closeBtn: 0,
+								area: ['1400px'],
+								content: addPlanHtml,
+							});
+							$('#add_plan_table').find('input[name^="departure_date_"]').each(function(){
+								laydate.render({ 
+									elem: this
+									,type: 'date'
+								})
+							});
+							$('#add_plan_table').find('input[name^="air_time"]').each(function(){
+								laydate.render({ 
+									elem: this
+									,type: 'time'
+									,format: 'HH:mm'
+								})
+							});
+							$('#add_plan_table').find('input[name="time_limit"]').each(function(){
+								laydate.render({ 
+									elem: this
+									,type: 'datetime'
+									,format: 'yyyy-MM-dd HH:mm'
+								})
+							});
+						}else{				
+							layer.msg(data.message);
+							
+						}
+					}
+				});
+			}
+		});
+		//单击操作记录
+		$('#logThisPlan').on('click',function(){
+			var airLineId = $(this).attr('airLineId');
+			if(airLineId!=''){
+				layer.open({
+					type: 2, 
+					title: false,
+					//shadeClose:true,
+					//closeBtn: 1,
+					area: ['700px','700px'],
+					content: '{:url('SelfPlanManage/LogViewAirLine')}'+'?id='+airLineId
+				});
+			}
+		});
+		//航线表格工具栏点击编辑/删除
+		table.on('tool(airLineListF)', function(obj){
+			var trData = obj.data; //获得当前行数据
+			var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+			
+			
+			//点击编辑按钮
+			if(layEvent === 'edit'){
+				layer.open({
+					type: 2, 
+					//shadeClose: true,
+					//shade: false,
+					maxmin: true, //开启最大化最小化按钮
+					area: ['900px','300px'],
+					content: '{:url('SelfPlanManage/EditAirLineInfo')}?id='+trData['id'],
+					end:function(){
+						table.reload('airLineTable');
+						table.reload('planPositonTable');
+					}
+				});
+				//console.log(e);
+				layui.stope(e);
+				
+			}
+			//点击删除
+			else if(layEvent === 'dele'){
+				layer.confirm('同时会删除当前航线下的所有计划位信息，是否确认删除？', function(Cindex){
+					layer.prompt({title: '请输入要删除的航线3字码，以确认删除'},function(value, pIndex, elem){
+						if(value==trData['air_line_code']){
+							$.ajax({
+								type:"POST",
+								url:"{:url('SelfPlanManage/DeleAirLineData')}",
+								data:{'id':trData['id']},
+								dataType:'json',
+								success:function(data){
+									if(data.status==1){	
+										layer.close(Cindex);
+										layer.msg(data.message);
+										table.reload('airLineTable');
+										table.reload('planPositonTable');
+									}else{				
+										layer.msg(data.message);
+										
+									}
+								}
+							});
+							layer.close(pIndex);
+						}else{
+								layer.msg('航线3字码输入错误，请检查')
+						}
+					});
+				});
+				layui.stope(e);
+			}
+		});
+		//计划位表格工具栏点击编辑/删除
+		table.on('tool(planPositonListF)', function(obj){
+			var trData = obj.data; //获得当前行数据
+			var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+
+			//点击编辑按钮
+			if(layEvent === 'edit'){
+				var edit_plan_tpl = $('#edit_plan_tpl').html();
+				var editPlanHtml = laytpl(edit_plan_tpl).render(trData);
+				layer.open({
+					type: 1, 
+					title: false,
+					shadeClose:true,
+					closeBtn: 0,
+					area: ['1400px','210px'],
+					content: editPlanHtml,
+				});
+				form.render('select');
+				$('#edit_plan_table').find('input[name^="departure_date_"]').each(function(){
+					laydate.render({ 
+						elem: this
+						,type: 'date'
+					})
+				});
+				$('#edit_plan_table').find('input[name^="air_time"]').each(function(){
+					laydate.render({ 
+						elem: this
+						,type: 'time'
+						,format: 'HH:mm'
+					})
+				});
+				$('#edit_plan_table').find('input[name="time_limit"]').each(function(){
+					laydate.render({ 
+						elem: this
+						,type: 'datetime'
+						,format: 'yyyy-MM-dd HH:mm'
+					})
+				});
+				 
+			}
+			//点击删除
+			else if(layEvent === 'dele'){
+				var remain_seat = 0;
+				$.each(trData['reserve_record'], function(index, value) {
+					remain_seat = remain_seat+value['quantity'];
+				});
+				if(remain_seat+trData['definite_pass'].length==0){
+					layer.confirm('【'+trData['departure_date_1']+'】的计划', function(Cindex){
+						$.ajax({
+							type:"POST",
+							url:"{:url('SelfPlanManage/DeleVerifyPlanPositionData')}",
+							data:{'id':trData['id']},
+							dataType:'json',
+							success:function(data){
+								if(data.status==1){	
+									layer.msg(data.message);
+									table.reload('planPositonTable');
+								}else{				
+									layer.msg(data.message);
+									
+								}
+							}
+						});
+					}); 
+				}else{
+					layer.confirm('【'+trData['departure_date_1']+'】的计划，是否确认删除，包含当前计划下的所有信息', function(Cindex){
+						layer.prompt({title: '请输入要删除的第一程日期，以确认删除'},function(value, pIndex, elem){
+							if(value==trData['departure_date_1']){
+								$.ajax({
+									type:"POST",
+									url:"{:url('SelfPlanManage/DelePlanPositionData')}",
+									data:{'id':trData['id']},
+									dataType:'json',
+									success:function(data){
+										if(data.status==1){	
+											layer.close(Cindex);
+											layer.msg(data.message);
+											table.reload('planPositonTable');
+										}else{				
+											layer.msg(data.message);
+											
+										}
+									}
+								});
+								layer.close(pIndex);
+							}else{
+								layer.msg('第一程日期输入错误，请检查')
+							}
+						});
+					}); 
+				}
+			}
+		});
+		//提交时对表单字段的验证
+		form.verify({
+		  
+		  //起飞日期格式验证
+		  airDate:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}-\\d{2}$').test(value)){
+			  return '起飞日期格式错误';
+			}
+		  },
+		   //起飞时间格式验证
+		  AirTime: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^[0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				return '起飞时间格式错误';
+			}
+		  },
+		  //座位数格式验证
+		  seat:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d+$').test(value)){
+				return '座位数格式错误';
+			}
+		  },
+		  //月份格式验证
+		  month:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}$').test(value)){
+				return '月份数格式错误';
+			}
+		  },
+		  //航线三字码格式验证
+		  airLineCode: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\w[\\w,]+$').test(value) && value!=''){
+				return '航线三字码是英文字母';
+			}
+		  },
+		  //金额格式验证
+		  money:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('(^[1-9]([0-9]+)?(\\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\\.[0-9]([0-9])?$)').test(value)){
+			  return '金额格式错误';
+			}
+		  },
+		  //时限格式验证
+		  timeLimit:function(value, item){
+			if(!new RegExp('^20[1-9][0-9]-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				return '时限格式格式错误';
+			}
+		  }
+		});
+		//新增当前航线计划位的提交
+		form.on('submit(addPlanBtn)', function(obj){
+			obj.field['__token__'] = sessionStorage.getItem('__token__');
+			obj.field['airLineId'] = $('#airLineId').text();
+			var air_time = '' 
+			$('#add_plan_table').find('input[name^="air_time"]').each(function(){
+				air_time = air_time+$(this).val()+'-';
+			});
+			obj.field['air_time'] = air_time.slice(0,air_time.length-1);
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/AddThatAirLinePlanData')}",
+				data:obj.field,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						//特别注意这里手册上没有写明，layer.close(index)中的index显示的是数字
+						//layer每开一个层就会加1，要准确关闭的话，就要获取，这个层的‘times’属性的值
+						layer.close($(obj.elem).parents('.layui-layer-page').attr('times'));
+						layer.msg(data.message);
+						table.reload('planPositonTable');
+					}else{				
+						layer.msg(data.message);
+						
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+			return false;
+		});
+		//点击编辑计划位的保存
+		form.on('submit(editPlanBtn)', function(obj){
+			obj.field['__token__'] = sessionStorage.getItem('__token__');
+			obj.field['id'] = $('#planPositonId').text();
+			var air_time = '' 
+			$('#edit_plan_table').find('input[name^="air_time"]').each(function(){
+				air_time = air_time+$(this).val()+'-';
+			});
+			obj.field['air_time'] = air_time.slice(0,air_time.length-1);
+			delete obj.field['air_time1'];
+			delete obj.field['air_time2'];
+			delete obj.field['air_time3'];
+			delete obj.field['air_time4'];
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/EditPlanData')}",
+				data:obj.field,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						//特别注意这里手册上没有写明，layer.close(index)中的index显示的是数字
+						//layer每开一个层就会加1，要准确关闭的话，就要获取，这个层的‘times’属性的值
+						layer.close($(obj.elem).parents('.layui-layer-page').attr('times'));
+						layer.msg(data.message);
+						table.reload('planPositonTable');
+					}else{				
+						layer.msg(data.message);
+						
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+			return false;
+		});
+		//双击计划位表格行时执行
+		table.on('rowDouble(planPositonListF)', function(obj){
+			//var edit_reserve_record_tpl = $('#edit_reserve_record_tpl').html();
+			//var reserveRecordHtml = laytpl(edit_reserve_record_tpl).render(obj.data);
+			layer.open({
+				type: 2, 
+				title: false,
+				//shadeClose:true,
+				//closeBtn: 1,
+				area: ['800px','800px'],
+				content: '{:url('SelfPlanManage/RecordMange')}'+'?id='+obj.data['id'],
+				end:function(){
+					table.reload('planPositonTable');
+				}
+			});
+		});
+		
+	});
+});
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+{/block}
+
+</body>
+
+</html>

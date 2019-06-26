@@ -1,0 +1,453 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+	<link href="__STATIC__/MUI/css/mui.picker.min.css" rel="stylesheet"/>
+</head>
+<body>
+		<!-- 主界面不动、菜单移动 -->
+		<!-- 侧滑导航根容器 -->
+		<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable mui-slide-in">
+		  <!-- 菜单容器 -->
+		  <aside class="mui-off-canvas-right" id="offCanvasSide">
+			<div class="mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!-- 菜单具体展示内容 -->
+				<div style="margin:10px;">
+					<div class="mui-input-row">
+						<input type="text" id="searchAirLine"  class="mui-input-clear" placeholder="请输入航线3字码">
+					</div>
+					<div class="mui-input-row">
+						<input type="text" id="searchMonth" readonly class="mui-input-clear" placeholder="选择月份">
+					</div>
+					<button type="button" id="search" class="mui-btn mui-btn-primary mui-btn-block" style="padding:8px;">搜索</button>
+				</div>
+			  </div>
+			</div>
+		  </aside>
+		  <!-- 主页面容器 -->
+		  <div class="mui-inner-wrap">
+			<!-- 主页面标题 -->
+			<header class="mui-bar mui-bar-nav">
+				<a id="black_a"class="mui-icon mui-icon-left-nav mui-pull-left"></a>
+				<a class="mui-icon mui-icon-bars mui-pull-right" href="#sheet1"></a>
+				<h1 class="mui-title">团队计划位管理系统</h1>
+			</header>
+			
+			<div id="air_line_list" class="mui-content mui-scroll-wrapper">
+				<div style="width:100%;text-align:center;padding:10px;position:relative;z-index:999;background-color:#DCDCDC;"><span>计划位高级查看</span></div>
+			  <div class="mui-scroll">
+				<!-- 主界面具体展示内容 -->
+				<ul class="mui-table-view" id="airLineList" style="font-size:12px;">
+					
+				</ul>
+				<div style="width: 100%;height: 41px;"></div>
+				 <div style="width: 100%;height: 33px;"></div>
+			  </div>
+			  
+			  <!-- 上下页 -->
+			  
+				<ul id="airLinePeges" class="mui-pager" style="width:100%;position:fixed;bottom:0px;z-index:999;margin: 0px;">
+					<li class="mui-previous mui-disabled">
+						<a href="#">
+							上一页
+						</a>
+					</li>
+					<li id="nowPage" style="display:none;"></li>
+					<li class="mui-next">
+						<a href="#">
+							下一页
+						</a>
+					</li>
+				</ul>
+			  
+			</div>  
+			
+			<div class="mui-off-canvas-backdrop"></div>
+		  </div>
+		</div>
+	<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<!-- 可选择菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#passWordChange">修改密码</a>
+		  </li>
+		  <li id="logout" class="mui-table-view-cell">
+			<a href="#">退出</a>
+		  </li>
+		</ul>
+		<!-- 取消菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#sheet1"><b>取消</b></a>
+		  </li>
+		</ul>
+	</div>
+	<div id="passWordChange" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>原始密码</label>
+				<input type="password" name="oldPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>新密码</label>
+				<input type="password" name="newPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>重复新密码</label>
+				<input type="password" name="repPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="passWordBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+<style>
+	
+	
+</style>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script src="__STATIC__/MUI/js/mui.picker.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function () {
+	mui.init();
+	airLineLoad();
+	mui('.mui-scroll-wrapper').scroll({
+		indicators: true //是否显示滚动条
+		,startY: 0
+	});
+	
+	
+	//修改密码提交
+	mui('#passWordChange').on('tap','#passWordBtn',function(){
+		var oldPassword = $('#passWordChange').find('input[name="oldPassword"]').val();
+		var newPassword = $('#passWordChange').find('input[name="newPassword"]').val();
+		var repPassword = $('#passWordChange').find('input[name="repPassword"]').val();
+		console.log('oldPassword');
+		if(newPassword.length<6){
+			mui.toast('密码不能少于6个字符');
+			return false;
+		}
+		if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(newPassword)){
+			
+			mui.toast('请使用英文字符和数字加“~!@#$%^&*”');
+			return false;
+		}
+		if(repPassword!=newPassword){
+			mui.toast('重复密码与第一次输入的不一致');
+			return false;
+		}
+		$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:{'oldPassword':oldPassword,'newPassword':newPassword,'repPassword':repPassword},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.href = "{:url('user/login')}";
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				}
+			});
+		
+	});
+	//点击返回
+	mui('body').on('tap','#black_a',function(){
+		window.location.href = "{:url('Index/index')}";
+	});
+	//点击退出
+	mui('body').on('tap','#logout',function(){
+		window.location.href = "{:url('user/logout')}";
+	});
+	
+	//上一页触摸执行
+	mui('#airLinePeges').on('tap','.mui-previous',function(){
+		var air_line_code = $('#searchAirLine').data('air_line_code')==undefined?'':$('#searchAirLine').data('air_line_code');
+		var month = $('#searchMonth').data('month')==undefined?'':$('#searchMonth').data('month');
+		var page = Number($('#nowPage').text())-1;
+		var limit = 10;
+		$.ajax({
+			type:"GET",
+			url:"{:url('TeamPlanAdvancedView/TeamAirLineSearchData')}"+'?limit='+limit+'&page='+page+'&air_line_code='+air_line_code+'&month='+month,
+			//data:{'airLineId':airLineId},
+			dataType:'json',
+			success:function(res){
+				if(res.code==0){
+					if(res.count>0){
+					
+						var pages = Math.ceil(res.count/limit);//分页数量
+						if(page==1 && pages>1){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}else if(pages>1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						
+						}else if(page>1 && pages>page){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						}else if(page==1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}
+						
+						var liHtml = '';
+						$.each(res.data,function(index,itme){
+							var liHtmlC = '<li class="mui-table-view-cell" airLineId="'+itme['id']+'"><a class="mui-navigate-right"><table style="width:100%;"><tr><td style="width:70%;">'+formatAirTrip(itme)+'</td><td style="width:30%;">'+itme['month']+'</td></tr></table></a></li>';
+							
+							liHtml = liHtml+liHtmlC;
+						});
+						$('#airLineList').html(liHtml);
+						mui('#air_line_list').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
+						$('#nowPage').text(page);
+					}else{
+						$('#airLineList').html('<div style="padding:10px;text-align:center;">暂无相关数据</div>');
+						$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+						$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+					}
+				}
+			}
+		
+		});
+	}); 
+	//下一页触摸执行
+	mui('#airLinePeges').on('tap','.mui-next',function(){
+		var air_line_code = $('#searchAirLine').data('air_line_code')==undefined?'':$('#searchAirLine').data('air_line_code');
+		var month = $('#searchMonth').data('month')==undefined?'':$('#searchMonth').data('month');
+		var page = Number($('#nowPage').text())+1;
+		var limit = 10;
+		$.ajax({
+			type:"GET",
+			url:"{:url('TeamPlanAdvancedView/TeamAirLineSearchData')}"+'?limit='+limit+'&page='+page+'&air_line_code='+air_line_code+'&month='+month,
+			//data:{'airLineId':airLineId},
+			dataType:'json',
+			success:function(res){
+				if(res.code==0){
+					if(res.count>0){
+					
+						var pages = Math.ceil(res.count/limit);//分页数量
+						if(page==1 && pages>1){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}else if(pages>1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						
+						}else if(page>1 && pages>page){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						}else if(page==1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}
+						var liHtml = '';
+						$.each(res.data,function(index,itme){
+							var liHtmlC = '<li class="mui-table-view-cell" airLineId="'+itme['id']+'"><a class="mui-navigate-right"><table style="width:100%;"><tr><td style="width:70%;">'+formatAirTrip(itme)+'</td><td style="width:30%;">'+itme['month']+'</td></tr></table></a></li>';
+							
+							liHtml = liHtml+liHtmlC;
+						});
+						$('#airLineList').html(liHtml);
+						mui('#air_line_list').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
+						$('#nowPage').text(page);
+					}else{
+						$('#airLineList').html('<div style="padding:10px;text-align:center;">暂无相关数据</div>');
+						$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+						$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+					}
+				}
+			}
+		
+		});
+	}); 
+	//搜素航线三字码输入自动大写
+	$('body').on('input propertychange','#searchAirLine',function(event){
+		$(this).val($(this).val().toUpperCase());
+	});
+	//月份选择
+	mui('#offCanvasSide').on('tap','#searchMonth',function(){
+		var _self = this;
+		if(_self.picker) {
+			_self.picker.show(function (rs) {
+				$(_self).val(rs.text);
+				_self.picker.dispose();
+				_self.picker = null;
+			});
+		} else {
+			/*
+			 * 首次显示时实例化组件
+			 * 示例为了简洁，将 options 放在了按钮的 dom 上
+			 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+			 */
+			_self.picker = new mui.DtPicker({'type':'month'});
+			_self.picker.show(function(rs) {
+				/*
+				 * rs.value 拼合后的 value
+				 * rs.text 拼合后的 text
+				 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+				 * rs.m 月，用法同年
+				 * rs.d 日，用法同年
+				 * rs.h 时，用法同年
+				 * rs.i 分（minutes 的第二个字母），用法同年
+				 */
+				$(_self).val(rs.text);
+				/* 
+				 * 返回 false 可以阻止选择框的关闭
+				 * return false;
+				 */
+				/*
+				 * 释放组件资源，释放后将将不能再操作组件
+				 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+				 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+				 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+				 */
+				_self.picker.dispose();
+				_self.picker = null;
+			});
+		}
+	});
+	//点击搜索执行
+	mui('#offCanvasSide').on('tap','#search',function(){
+		var air_line_code = $('#searchAirLine').val();
+		var month = $('#searchMonth').val();
+		$('#searchAirLine').data('air_line_code',air_line_code);
+		$('#searchMonth').data('month',month);
+		var page = 1;
+		var limit = 10;
+		$.ajax({
+			type:"GET",
+			url:"{:url('TeamPlanAdvancedView/TeamAirLineSearchData')}"+'?limit='+limit+'&page='+page+'&air_line_code='+air_line_code+'&month='+month,
+			//data:{'airLineId':airLineId},
+			dataType:'json',
+			success:function(res){
+				if(res.code==0){
+					if(res.count>0){
+						
+						var pages = Math.ceil(res.count/limit);//分页数量
+						
+						if(page==1 && pages>1){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}else if(pages>1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						
+						}else if(page>1 && pages>page){
+							$('#airLinePeges').find('li.mui-next').removeClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').removeClass('mui-disabled');
+						}else if(page==1 && pages==page){
+							$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+							$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+						}
+						var liHtml = '';
+						$.each(res.data,function(index,itme){
+							var liHtmlC = '<li class="mui-table-view-cell" airLineId="'+itme['id']+'"><a class="mui-navigate-right"><table style="width:100%;"><tr><td style="width:70%;">'+formatAirTrip(itme)+'</td><td style="width:30%;">'+itme['month']+'</td></tr></table></a></li>';
+							
+							liHtml = liHtml+liHtmlC;
+						});
+						$('#airLineList').html(liHtml);
+						mui('#air_line_list').scroll().scrollTo(0,0,100);//100毫秒滚动到顶
+						$('#nowPage').text(page);
+					}else{
+						$('#airLineList').html('<div style="padding:10px;text-align:center;">暂无相关数据</div>');
+						$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+						$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+					}
+				}
+			}
+			
+		});
+		mui('#offCanvasWrapper').offCanvas('close');
+		$('#searchAirLine').val('');
+		$('#searchMonth').val('');
+	});
+	//点击航线列表
+	mui('#airLineList').on('tap','li',function(){
+		var airLineId = $(this).attr('airLineId');
+		window.location.href="{:url('TeamPlanAdvancedView/PositionListMobile')}"+'?airLineId='+airLineId;
+	});
+});
+//***********航线数据初始化加载，并生成分页*******************
+function airLineLoad(){
+	var page = 1;
+	var limit = 10;
+	$.ajax({
+		type:"GET",
+		url:"{:url('TeamPlanAdvancedView/TeamAirLineData')}"+'?limit='+limit+'&page='+page,
+		//data:{'airLineId':airLineId},
+		dataType:'json',
+		success:function(res){
+			if(res.code==0){
+				if(res.count>0){
+					
+					var pages = Math.ceil(res.count/limit);//分页数量
+					
+					if(pages<=1){
+						$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+					}
+					var liHtml = '';
+					$.each(res.data,function(index,itme){
+						var liHtmlC = '<li class="mui-table-view-cell" airLineId="'+itme['id']+'"><a class="mui-navigate-right"><table style="width:100%;"><tr><td style="width:70%;">'+formatAirTrip(itme)+'</td><td style="width:30%;">'+itme['month']+'</td></tr></table></a></li>';
+						
+						liHtml = liHtml+liHtmlC;
+					});
+					$('#airLineList').html(liHtml);
+					$('#nowPage').text(page);
+				}else{
+					$('#airLineList').html('<div style="padding:10px;text-align:center;">暂无相关数据</div>');
+					$('#airLinePeges').find('li.mui-next').addClass('mui-disabled');
+					$('#airLinePeges').find('li.mui-previous').addClass('mui-disabled');
+				}
+			}
+		}
+		
+	});
+}
+//***********航线行程信息格式化***********
+function formatAirTrip(airLineData){
+	var tripInfoArr = [];
+	if(/&/g.test(airLineData.air_line_text)){
+		var vAirPortArr = airLineData.air_line_text.split('&');
+		var tripN = 0;
+		$.each(vAirPortArr,function(index, vAirPort){
+			var tripf = vAirPort.split('-');
+			for (var i=0; i<=tripf.length-1; i++){
+				if(i>0){
+					tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+					tripN = tripN+1;
+				}
+			}
+		});
+		var flightArr = airLineData.flight.split('-');
+		$.each(tripInfoArr,function(index,vtrip){
+			tripInfoArr[index] = vtrip+' '+flightArr[index];
+		});
+	}else{
+		var tripN = 0;
+		var tripf = airLineData.air_line_text.split('-');
+		for (var i=0; i<=tripf.length-1; i++){
+			if(i>0){
+				tripInfoArr[tripN] = tripf[i-1]+'-'+tripf[i];
+				tripN = tripN+1;
+			}
+		}
+		var flightArr = airLineData.flight.split('-');
+		$.each(tripInfoArr,function(index,vtrip){
+			tripInfoArr[index] = vtrip+' '+flightArr[index];
+		});
+	}
+	var tripHtml = ''
+	$.each(tripInfoArr,function(index,val){
+		tripHtml = tripHtml+val+'<br>';	
+	});
+	return tripHtml;
+}	
+</script>
+</body>
+</html>

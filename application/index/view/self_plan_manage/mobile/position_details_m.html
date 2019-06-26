@@ -1,0 +1,576 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+	<link href="__STATIC__/MUI/css/mui.picker.min.css" rel="stylesheet"/>
+</head>
+<body>
+	<!-- 主界面不动、菜单移动 -->
+	<!-- 侧滑导航根容器 -->
+	<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable mui-slide-in">
+		  <!-- 菜单容器 -->
+		  <aside class="mui-off-canvas-right" id="offCanvasSide">
+			<div class="mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!-- 菜单具体展示内容 -->
+				<div style="margin:10px;">
+					<div class="title" style="margin-bottom:25px;margin: 35px 15px 10px;color: #fff;">操作</div>
+					<div style="margin:10px;">
+						<button type="button" id="edit" class="mui-btn mui-btn-warning mui-btn-block" style="padding:8px;">编辑</button>
+						<button type="button" id="dele" class="mui-btn mui-btn-danger mui-btn-block" style="padding:8px;">删除</button>
+					</div>
+				</div>
+			  </div>
+			</div>
+		  </aside>
+		  <!-- 主页面容器 -->
+		<div class="mui-inner-wrap">
+			<!-- 主页面标题 -->
+			<header class="mui-bar mui-bar-nav">
+				<a id="black_a" class="mui-icon mui-icon-left-nav mui-pull-left"></a>
+				<a class="mui-icon mui-icon-bars mui-pull-right" href="#sheet1"></a>
+				<h1 class="mui-title">留位管理</h1>
+			</header>
+			<div class="mui-content mui-scroll-wrapper">
+				<div id="header_title" style="width:100%;padding:10px;position:relative;z-index:999;background-color:#DCDCDC;font-size:15px;">
+					<table style="width:100%;">
+						<tr>
+							<td>
+								{php}
+									$tripInfoArr = [];
+									$vAirPortArr = explode('&',$planPositionInfo['air_line']['air_line_text']);
+									if(count($vAirPortArr)>1){
+										$tripN = 0;
+										foreach($vAirPortArr as $vAirPort)
+										{
+											$tripf = explode('-',$vAirPort);
+											for ($i=0; $i<=count($tripf)-1; $i++)
+											{
+												if($i>0){
+													$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+													$tripN = $tripN+1;
+												}
+											}
+											
+										}
+										$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+										$air_timeArr = explode('-',$planPositionInfo['air_time']);
+										foreach($tripInfoArr as $k=>$vtrip)
+										{
+											$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k].' '.$air_timeArr[$k];
+										}
+									}else
+									{
+										$tripN = 0;
+										$tripf = explode('-',$planPositionInfo['air_line']['air_line_text']);
+										for ($i=0; $i<=count($tripf)-1; $i++)
+										{
+											if($i>0){
+												$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+												$tripN = $tripN+1;
+											}
+										}
+										$flightArr = explode('-',$planPositionInfo['air_line']['flight']);
+										$air_timeArr = explode('-',$planPositionInfo['air_time']);
+										foreach($tripInfoArr as $k=>$vtrip)
+										{
+											$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k].' '.$air_timeArr[$k];
+										}
+									}
+									foreach($tripInfoArr as $val)
+									{ 
+										echo $val.'<br>';	
+									} 
+								{/php}
+							</td>
+							<td>
+								<i>出票时限</i><br>
+								{$planPositionInfo.time_limit}
+							</td>
+							<td>
+								<i>状态</i><br>
+								{notempty name="planPositionInfo.policy_state"}
+									{$planPositionInfo.policy_state}
+								{/notempty}
+							</td>
+						</tr>
+					</table>
+					<hr>
+					<table style="width:100%;">
+						<tr>
+							{notempty name="planPositionInfo.departure_date_1"}
+								<td><i>第1程日期</i><br>{$planPositionInfo.departure_date_1}</td>
+							{/notempty}
+							{notempty name="planPositionInfo.departure_date_2"}
+								<td><i>第2程日期</i><br>{$planPositionInfo.departure_date_2}</td>
+							{/notempty}
+							{notempty name="planPositionInfo.departure_date_3"}
+								<td><i>第3程日期</i><br>{$planPositionInfo.departure_date_3}</td>
+							{/notempty}
+							{notempty name="planPositionInfo.departure_date_4"}
+								<td><i>第4程日期</i><br>{$planPositionInfo.departure_date_4}</td>
+							{/notempty}
+							<td><i>座位数</i><br>{$planPositionInfo.seat_number}</td>
+							<td>
+								<i>留位</i><br>
+								{php}
+									$occupy_seat = 0;
+									foreach($planPositionInfo['reserve_record'] as $val)
+									{
+										$occupy_seat = $occupy_seat+$val['quantity'];
+									}
+									foreach($planPositionInfo['definite_record'] as $passList)
+									{
+										foreach($passList['definite_pass_list'] as $val){
+											$occupy_seat = $occupy_seat+count($val);
+										}
+									}
+									echo $occupy_seat;
+								{/php}
+							</td>
+							<td>
+								<i>余位</i><br>
+								<span style="color:red;">
+								{php}
+									$occupy_seat = 0;
+									foreach($planPositionInfo['reserve_record'] as $val)
+									{
+										$occupy_seat = $occupy_seat+$val['quantity'];
+									}
+									foreach($planPositionInfo['definite_record'] as $passList)
+									{
+										foreach($passList['definite_pass_list'] as $val){
+											$occupy_seat = $occupy_seat+count($val);
+										}
+									}
+									echo $planPositionInfo['seat_number']-$occupy_seat;
+								{/php}
+								</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- 主界面具体展示内容 -->
+				<div style="padding: 10px 10px;background-color:#efeff4;position:relative;z-index:999;">
+					<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-primary">
+						<a class="mui-control-item mui-active" href="#reserveDiv">留位记录</a>
+						<a class="mui-control-item" href="#definiteDiv">有名单记录</a>
+						<a id="planLogTab" class="mui-control-item" href="#planLog">操作记录</a>
+					</div>
+				</div>
+				<div class="mui-scroll">
+					<div>
+						<div id="reserveDiv" class="mui-control-content mui-active">
+							<a href="#reserveAddPop" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">新增留位</a>
+							<ul class="mui-table-view" style="font-size:12px;" id="reserveList">
+								{volist name="planPositionInfo.reserve_record" id="item"}
+									<li class="mui-table-view-cell" data-reserve-id="{$item.id}" data-title="{$item.title}" data-quantity="{$item.quantity}">
+										<a class="mui-navigate-right" href="#reserveMenu">
+											<table style="width:100%;">
+												<tr>
+													<td><i>名称</i></td>
+													<td><i>留位数量</i></td>
+													<td><i>提交人</i></td>
+												</tr>
+												<tr>
+													<td>{$item.title}</td>
+													<td style="color:red;">{$item.quantity}</td>
+													<td>{$item.submitter}</td>
+												</tr>
+											</table>
+										</a>
+									</li>
+								{/volist}
+							</ul>
+						</div>
+						<div id="definiteDiv" class="mui-control-content">
+							<a href="#definiteAddPop" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">新增记录</a>
+							<ul class="mui-table-view" style="font-size:12px;" id="definiteList">
+								{volist name="planPositionInfo.definite_record" id="item"}
+									<li class="mui-table-view-cell" data-definite-id="{$item.id}">
+										<a class="mui-navigate-right">
+											<table style="width:100%;">
+												<tr>
+													<td><i>名称</i></td>
+													<td><i>留位数量</i></td>
+													<td><i>提交人</i></td>
+												</tr>
+												<tr>
+													<td>{$item.title}</td>
+													<td style="color:red;">{$item.definite_pass_list|count}</td>
+													<td>{$item.submitter}</td>
+												</tr>
+											</table>
+										</a>
+									</li>
+								{/volist}
+							</ul>
+						</div>
+						<div id="planLog" class="mui-control-content">
+							
+						</div>
+					</div>
+					<div class="fill_height" style="width: 100%"></div>
+					<div style="width: 100%;height:60px;"></div>
+				</div>
+			</div>  
+			<div class="mui-off-canvas-backdrop"></div>
+		</div>
+	</div>
+	<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<!-- 可选择菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#passWordChange">修改密码</a>
+		  </li>
+		  <li id="logout" class="mui-table-view-cell">
+			<a href="#">退出</a>
+		  </li>
+		</ul>
+		<!-- 取消菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#sheet1"><b>取消</b></a>
+		  </li>
+		</ul>
+	</div>
+	<div id="reserveMenu" class="mui-popover" style="font-size:15px;width:100px;">
+		<div class="mui-popover-arrow"></div>
+		<ul class="mui-table-view">
+			<li id="reserveEdit" class="mui-table-view-cell">
+				<a href="#reserveEditPop">编辑</a>
+			</li>
+			<li id="reserveDele" class="mui-table-view-cell" style="background-color:#dd524d;">
+				<a href="#">删除</a>
+			</li>
+		</ul>
+	</div>
+	<div id="passWordChange" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>原始密码</label>
+				<input type="password" name="oldPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>新密码</label>
+				<input type="password" name="newPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>重复新密码</label>
+				<input type="password" name="repPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="passWordBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+	<div id="reserveAddPop" class="mui-popover mui-popover-bottom mui-popover-action">
+		<form class="mui-input-group">
+			<div class="mui-input-row" style="height:130px;">
+				<label>名称</label>
+				<textarea name="title" rows="5" placeholder="输入名称"></textarea>
+			</div>
+			<div class="mui-input-row">
+				<label>留位数量</label>
+				<input type="text" name="quantity" class="mui-input-clear" placeholder="输入数量">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="addReserveBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+	<div id="reserveEditPop" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row" style="display:none;">
+				<label>id</label>
+				<input type="text" name="id" class="mui-input-clear" placeholder="输入名称">
+			</div>
+			<div class="mui-input-row" style="height:130px;">
+				<label>名称</label>
+				<textarea name="title" rows="5" placeholder="输入名称"></textarea>
+			</div>
+			<div class="mui-input-row">
+				<label>留位数量</label>
+				<input type="text" name="quantity" class="mui-input-clear" placeholder="输入数量">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="editReserveBtn" class="mui-btn mui-btn-primary">保存</button>
+			</div>
+		</form>
+	</div>
+	<div id="definiteAddPop" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row" style="height:130px;">
+				<label>名称</label>
+				<textarea name="title" rows="5" placeholder="输入名称"></textarea>
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="addDefiniteBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+<style>
+* {
+    touch-action: pan-y;
+}
+i{
+	color:#8f8f94;
+	font-size:12px;
+}	
+	
+</style>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script src="__STATIC__/MUI/js/mui.picker.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function () {
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	mui.init();
+	mui('.mui-scroll-wrapper').scroll({
+		indicators: true //是否显示滚动条
+	});
+	//填充高度
+	var fillHeight = $('#header_title').outerHeight(true);
+	$('.fill_height').css('height',fillHeight);
+	
+	//修改密码提交
+	mui('#passWordChange').on('tap','#passWordBtn',function(){
+		var oldPassword = $('#passWordChange').find('input[name="oldPassword"]').val();
+		var newPassword = $('#passWordChange').find('input[name="newPassword"]').val();
+		var repPassword = $('#passWordChange').find('input[name="repPassword"]').val();
+		console.log('oldPassword');
+		if(newPassword.length<6){
+			mui.toast('密码不能少于6个字符');
+			return false;
+		}
+		if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(newPassword)){
+			
+			mui.toast('请使用英文字符和数字加“~!@#$%^&*”');
+			return false;
+		}
+		if(repPassword!=newPassword){
+			mui.toast('重复密码与第一次输入的不一致');
+			return false;
+		}
+		$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:{'oldPassword':oldPassword,'newPassword':newPassword,'repPassword':repPassword},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.href = "{:url('user/login')}";
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				}
+			});
+		
+	});
+	//点击返回
+	mui('body').on('tap','#black_a',function(){
+		window.location.href = "{:url('SelfPlanManage/PositionListMobile')}?airLineId={$planPositionInfo.air_line_id}";
+	});
+	//点击退出
+	mui('body').on('tap','#logout',function(){
+		window.location.href = "{:url('user/logout')}";
+	});
+	
+	
+	
+	//点击编辑
+	mui('#offCanvasSide').on('tap','#edit',function(){
+		window.location.href="{:url('SelfPlanManage/EditThatPlanPositionMobile')}"+'?id={$planPositionInfo.id}';
+	});
+	//点击删除
+	mui('#offCanvasSide').on('tap','#dele',function(e){
+		var btnArray = ['否', '是'];
+		mui.confirm('同时会删除当前计划下的所有信息','确认删除',btnArray, function(Cindex){
+			if(Cindex.index==1){
+				e.detail.gesture.preventDefault(); //修复iOS 8.x平台存在的bug，使用plus.nativeUI.prompt会造成输入法闪一下又没了
+				var btnArray = ['取消', '确定'];
+				mui.prompt('请输入要删除的第一程日期','','确认删除',btnArray,function(pIndex){
+					if(pIndex.index==1){
+						if(pIndex.value=='{$planPositionInfo.departure_date_1}'){
+							$.ajax({
+								type:"POST",
+								url:"{:url('SelfPlanManage/DelePlanPositionData')}",
+								data:{'id':'{$planPositionInfo.id}'},
+								dataType:'json',
+								success:function(data){
+									if(data.status==1){	
+										mui.toast(data.message);
+										window.location.href="{:url('SelfPlanManage/PositionListMobile')}"+'?airLineId={$planPositionInfo.air_line_id}';
+									}else{				
+										mui.toast(data.message);
+										
+									}
+								}
+							});
+						}else{
+								mui.toast('第一程日期输入错误，请检查');
+						}
+					}
+				});
+			}
+		});
+	});
+	//新增reserve_record记录提交
+	mui('#reserveAddPop').on('tap','#addReserveBtn',function(){
+		var plan_position_id = {$planPositionInfo.id};
+		var title = $('#reserveAddPop').find('textarea[name="title"]').val().trim();
+		var quantity = $('#reserveAddPop').find('input[name="quantity"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		
+		if(!/[<>\s]/g.test(title) && /^[0-9]$|^[1-9][0-9]+$/g.test(quantity)){
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/AddReserveRecordData')}",
+				data:{'plan_position_id':plan_position_id,'title':title,'quantity':quantity,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//修改reserve_record记录保存
+	mui('#reserveEditPop').on('tap','#editReserveBtn',function(){
+		var reserve_record_id = $('#reserveEditPop').find('input[name="id"]').val().trim();
+		var title = $('#reserveEditPop').find('textarea[name="title"]').val().trim();
+		var quantity = $('#reserveEditPop').find('input[name="quantity"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		
+		if(!/[<>\s]/g.test(title) && /^[0-9]$|^[1-9][0-9]+$/g.test(quantity)){
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/editReserveRecordData')}",
+				data:{'id':reserve_record_id,'title':title,'quantity':quantity,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//点击reserve_record菜单的删除
+	mui('#reserveMenu').on('tap','#reserveDele',function(e){
+		var reserveRecordID = $(this).data('reserve-id');
+		var btnArray = ['否', '是'];
+		mui.confirm('是否确认删除该信息','确认删除',btnArray, function(Cindex){
+			if(Cindex.index==1){
+				e.detail.gesture.preventDefault();
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/DeleReserveRecordData')}",
+					data:{'id':reserveRecordID},
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){		
+							mui.toast(data.message);
+							window.location.reload();
+						}else{				
+							mui.toast(data.message);
+							
+						}
+					}
+				});
+			}
+		});
+	});
+	//点击reserve_record列表项设置字段
+	mui('#reserveList').on('tap','li',function(){
+		$('#reserveEditPop').find('input[name="id"]').val($(this).data('reserve-id'));
+		$('#reserveEditPop').find('textarea[name="title"]').val($(this).data('title'));
+		$('#reserveEditPop').find('input[name="quantity"]').val($(this).data('quantity'));
+		$('#reserveDele').data('reserve-id',$(this).data('reserve-id'));
+	});
+	//新增definite_record记录提交
+	mui('#definiteAddPop').on('tap','#addDefiniteBtn',function(){
+		var plan_position_id = {$planPositionInfo.id};
+		var title = $('#definiteAddPop').find('textarea[name="title"]').val().trim();
+		var token = sessionStorage.getItem('__token__');
+		
+		if(!/[<>\s]/g.test(title)){
+			$.ajax({
+				type:"POST",
+				url:"{:url('SelfPlanManage/AddDefiniteRecordData')}",
+				data:{'plan_position_id':plan_position_id,'title':title,'__token__':token},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){
+						mui.toast(data.message);
+						window.location.reload();
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+			});
+		}else{
+			mui.toast('填写内容格式错误');
+		}
+	});
+	//点击definite_record列表
+	mui('#definiteList').on('tap','li',function(){
+		window.location.href="{:url('SelfPlanManage/DefinitePassMobile')}"+'?definiteId='+$(this).data('definite-id');
+	});
+	//点击操作记录选项卡
+	mui('#segmentedControl').on('tap','#planLogTab',function(){
+		$.get('{:url("SelfPlanManage/LogViewPlanPositionMobile")}?id='+{$planPositionInfo.id},function(data,status){
+			if(status == 'success'){
+				$('#planLog').html(data);
+			}else{
+				$('#planLog').html('数据加载失败');
+			}
+		});
+	});
+	
+	
+	
+});
+</script>
+</body>
+</html>

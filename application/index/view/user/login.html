@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<link rel="stylesheet" href="__STATIC__/layui/css/layui.css">
+	<title>登录</title>
+</head>
+<body style = "background-color: #F2F2F2;">
+	<div class="layui-row" style="margin-top:10%;">
+		<div class="layui-col-md4 layui-col-md-offset4" style="padding-left:5%;padding-right:5%">
+			<div class="lay-row">
+				<div class="layui-col-xs12">
+					<img src="__STATIC__/images/EZ_logo.png"  style="height:100px; width:100px;vertical-align:middle;"alt="logo">
+					<span style="font-size:200%;">团队计划位管理系统</span>
+				</div>
+			</div>
+				<form class="layui-form layui-form-pane">
+					<div class="layui-form-item">
+						<label class="layui-icon layui-icon-username layui-form-label" for="LAY-user-login-username">帐号</label>
+						<div class="layui-input-block">
+							<input type="text" name="account" id="LAY-user-login-username" lay-verify="required" placeholder="请输入用户名" class="layui-input">
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-icon layui-icon-password layui-form-label" for="LAY-user-login-password">密码</label>
+						<div class="layui-input-block">
+							<input type="password" name="password" id="LAY-user-login-password" lay-verify="required" placeholder="请输入密码" class="layui-input">
+						</div>	
+					</div>
+					<div class="layui-form-item">	 
+						<a id="kanbuq" href="javascript:refreshVerity();">
+							<img src="{:captcha_src()}" class="layadmin-user-login-codeimg" id="LAY-user-get-vercode">
+						</a>	
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-icon layui-icon-vercode layui-form-label" for="LAY-user-login-vercode">验证码</label>
+						<div class="layui-input-block">
+							<input type="text" name="vercode" id="LAY-user-login-vercode" lay-verify="required" placeholder="请输入验证码" class="layui-input">
+						</div>	
+					</div>  	 
+					<div class="layui-form-item">
+						<button class="layui-btn layui-btn-fluid" id="login" lay-submit="" lay-filter="login-submit">登 入</button>
+						<!--<input  id="login" type="button" class="layui-btn" value="&nbsp;登&nbsp;&nbsp;&nbsp;&nbsp;录&nbsp;">-->
+					</div>
+				</form>
+			<div style="text-align:center"><span class="" > 恩浙航旅 v1.0</span></div>
+				
+		</div>
+	</div>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/layui/layui.js"></script>
+<script>
+function refreshVerity(){
+		var ts = Date.parse(new Date())/1000;
+		$("#LAY-user-get-vercode").attr("src","/captcha?id="+ts);
+	}
+layui.use(['element','form','layer'], function(){
+  var element = layui.element,
+  form = layui.form,
+  layer = layui.layer;
+  form.on('submit(login-submit)', function(fdata){
+	$.ajax({
+			type:"POST",
+			url:"{:url('checkLogin')}",
+			data:fdata.field,
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){	
+					layer.msg(data.message);
+					window.location.href="{:url('index/index')}";
+				}else{				
+					layer.msg(data.message);
+					refreshVerity();
+				}
+			}
+		});
+	return false;	
+  });
+});
+/*
+$(document).ready(function(){
+	$("#login").click(function(){
+		$.ajax({
+			type:"POST",
+			url:"{:url('checkLogin')}",
+			data:$("form").serialize(),
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){	
+					//$("#jgt").attr("class","Huialert Huialert-success");
+					//$("#jgt").text(data.message);
+					//$("#jg").fadeIn("slow");
+					//$("#jg").fadeOut(3000);
+					alert("登陆成功"+data.message+data.data);
+					window.location.href="{:url('index/index')}";
+				}else{				
+					//$("#jgt").text(data.message);
+					//$("#jg").fadeIn("slow");
+					//$("#jg").fadeOut(3000);
+					alert("登陆失败"+data.message+data.data);
+					refreshVerity();
+				}
+			}
+		});
+	});
+});
+*/
+</script>
+</body>
+</html>

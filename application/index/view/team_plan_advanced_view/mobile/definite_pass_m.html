@@ -1,0 +1,276 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+	<link href="__STATIC__/MUI/css/mui.picker.min.css" rel="stylesheet"/>
+</head>
+<body>
+	<!-- 主界面不动、菜单移动 -->
+	<!-- 侧滑导航根容器 -->
+	<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable mui-slide-in">
+		  <!-- 菜单容器 -->
+		  <aside class="mui-off-canvas-right" id="offCanvasSide">
+			<div class="mui-scroll-wrapper">
+			  <div class="mui-scroll">
+				<!-- 菜单具体展示内容 -->
+				
+				
+			  </div>
+			</div>
+		  </aside>
+		  <!-- 主页面容器 -->
+		<div class="mui-inner-wrap">
+			<!-- 主页面标题 -->
+			<header class="mui-bar mui-bar-nav">
+				<a id="black_a" class="mui-icon mui-icon-left-nav mui-pull-left"></a>
+				<a class="mui-icon mui-icon-bars mui-pull-right" href="#sheet1"></a>
+				<h1 class="mui-title">有名单留位管理</h1>
+			</header>
+			<div class="mui-content mui-scroll-wrapper">
+				<div id="header_title" style="width:100%;padding:10px;position:relative;z-index:999;background-color:#DCDCDC;font-size:15px;">
+					<table style="width:100%;">
+						<tr>
+							<td>
+								<i>名称</i><br>
+								{$definiteInfo.title}
+							</td>
+							<td style="float:right;">
+								<i>留位数量</i><br>
+								<span style="color:red;">{$definiteInfo.definite_pass_list|count}</span>
+							</td>
+						</tr>
+					</table>
+				</div>
+				<!-- 主界面具体展示内容 -->
+				<div style="padding: 10px 10px;background-color:#efeff4;position:relative;z-index:999;">
+					<div id="segmentedControl" class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-primary">
+						<a class="mui-control-item mui-active" href="#passOutDiv">旅客提出</a>
+						<a class="mui-control-item" href="#ticketOutDiv">票号提出</a>
+					</div>
+				</div>
+				<div class="mui-scroll">
+					<div>
+						<div id="passOutDiv" class="mui-control-content mui-active">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndIdOut" rows="5" readonly style="margin-bottom:0px;font-size:15px;" placeholder=""></textarea>
+							</div>
+							<button type="button" id="outPassAndId" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								生成并复制名单
+							</button>
+						</div>
+						<div id="ticketOutDiv" class="mui-control-content">
+							<div class="mui-input-row" style="margin:10px 5px 0px 5px;">
+								<textarea id="nameAndTicketOut" rows="5" readonly style="margin-bottom:0px;font-size:15px;" placeholder=""></textarea>
+							</div>
+							<button type="button" id="outTicket" class="mui-btn mui-btn-primary" style="margin-bottom:10px;">
+								生成并复制票号
+							</button>
+						</div>
+					</div>
+					<ul class="mui-table-view" id="passList">
+						{volist name="definiteInfo.definite_pass_list" id="item"}
+						 <li class="mui-table-view-cell" data-id="{$item.id}" data-pass_name="{$item.pass_name}" data-pass_id="{$item.pass_id}" data-ticket_number="{$item.ticket_number}">
+							<a href="#passInfoMenu">
+								<table style="width:100%;font-size:12px;">
+									<tr>
+										<td style="width:20%;">{$item.pass_name}</td>
+										<td style="width:45%;">{$item.pass_id}</td>
+										<td style="width:35%;">{$item.ticket_number}</td>
+									</tr>
+								</table>
+							</a>
+						 </li>
+						{/volist}
+					</ul>
+					<div class="fill_height" style="width: 100%"></div>
+					<div style="width: 100%;height:60px;"></div>
+				</div>
+			</div>  
+			<div class="mui-off-canvas-backdrop"></div>
+		</div>
+	</div>
+	<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<!-- 可选择菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#passWordChange">修改密码</a>
+		  </li>
+		  <li id="logout" class="mui-table-view-cell">
+			<a href="#">退出</a>
+		  </li>
+		</ul>
+		<!-- 取消菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#sheet1"><b>取消</b></a>
+		  </li>
+		</ul>
+	</div>
+	<div id="passWordChange" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>原始密码</label>
+				<input type="password" name="oldPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>新密码</label>
+				<input type="password" name="newPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>重复新密码</label>
+				<input type="password" name="repPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="passWordBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+<style>
+* {
+    touch-action: pan-y;
+}
+i{
+	color:#8f8f94;
+	font-size:12px;
+}	
+	
+</style>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script src="__STATIC__/MUI/js/mui.picker.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function () {
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	mui.init();
+	mui('.mui-scroll-wrapper').scroll({
+		indicators: true //是否显示滚动条
+	});
+	//填充高度
+	var fillHeight = $('#header_title').outerHeight(true);
+	$('.fill_height').css('height',fillHeight);
+	//修改密码提交
+	mui('#passWordChange').on('tap','#passWordBtn',function(){
+		var oldPassword = $('#passWordChange').find('input[name="oldPassword"]').val();
+		var newPassword = $('#passWordChange').find('input[name="newPassword"]').val();
+		var repPassword = $('#passWordChange').find('input[name="repPassword"]').val();
+		console.log('oldPassword');
+		if(newPassword.length<6){
+			mui.toast('密码不能少于6个字符');
+			return false;
+		}
+		if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(newPassword)){
+			
+			mui.toast('请使用英文字符和数字加“~!@#$%^&*”');
+			return false;
+		}
+		if(repPassword!=newPassword){
+			mui.toast('重复密码与第一次输入的不一致');
+			return false;
+		}
+		$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:{'oldPassword':oldPassword,'newPassword':newPassword,'repPassword':repPassword},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.href = "{:url('user/login')}";
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				}
+			});
+		
+	});
+	//点击返回
+	mui('body').on('tap','#black_a',function(){
+		window.location.href = "{:url('TeamPlanAdvancedView/PositionDetailsMobile')}?planPositionId={$definiteInfo.plan_position_id}";
+	});
+	//点击退出
+	mui('body').on('tap','#logout',function(){
+		window.location.href = "{:url('user/logout')}";
+	});
+	
+	
+	
+	
+	
+	//点击生成并复制名单（姓名和身份证）
+	mui('#passOutDiv').on('tap','#outPassAndId',function(){
+		var definiteRecordId = {$definiteInfo.id};
+		$.ajax({
+			async:false,
+			type:"POST",
+			url:"{:url('TeamPlanAdvancedView/OutDefinitePassData')}",
+			data:{'id':definiteRecordId},
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){
+					var outInfo = '';
+					$.each(data.data,function(index, passInfo){
+						outInfo = outInfo+passInfo['pass_name']+'\t'+passInfo['pass_id']+'\n'
+					});
+					outInfo = outInfo.substring(0,outInfo.length-1)
+					$('#nameAndIdOut').val(outInfo);
+					$("#nameAndIdOut").select();
+					if (document.execCommand('copy')) {
+						mui.toast('复制成功');
+					}else{
+						mui.toast('复制失败，请手动复制');
+					}
+					
+				}else{				
+					mui.toast(data.message);
+					
+				}
+			}
+		});	
+	});
+	//点击生成并复制票号（姓名和票号）
+	mui('#ticketOutDiv').on('tap','#outTicket',function(){
+		var definiteRecordId = {$definiteInfo.id};
+		$.ajax({
+			async:false,
+			type:"POST",
+			url:"{:url('TeamPlanAdvancedView/OutDefinitePassData')}",
+			data:{'id':definiteRecordId},
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){
+					var outInfo = '';
+					$.each(data.data,function(index, passInfo){
+						outInfo = outInfo+passInfo['pass_name']+'/'+passInfo['ticket_number']+'\n'
+					});
+					outInfo = outInfo.substring(0,outInfo.length-1)
+					$('#nameAndTicketOut').val(outInfo);
+					$("#nameAndTicketOut").select();
+					if (document.execCommand('copy')) {
+						mui.toast('复制成功');
+					}else{
+						mui.toast('复制失败，请手动复制');
+					}
+				}else{				
+					mui.toast(data.message);
+					
+				}
+			}
+		});	
+	});
+	
+});
+</script>
+</body>
+</html>

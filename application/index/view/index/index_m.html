@@ -1,0 +1,131 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>团队计划位管理系统</title>
+    <link href="__STATIC__/MUI/css/mui.min.css" rel="stylesheet"/>
+</head>
+<body>
+	<!-- 主页面标题 -->
+	<header class="mui-bar mui-bar-nav">
+		<a class="mui-icon mui-icon-bars mui-pull-right" href="#sheet1"></a>
+		<h1 class="mui-title">团队计划位管理系统</h1>
+	</header>
+	<div class="mui-content">
+		<div style="width:100%;text-align:center;padding:10px;position:fixed;"><span>菜单</span></div>
+		<div style="width: 100%;height: 41px;"></div>
+		<ul class="mui-table-view">
+		{volist name="menu" id="itme"}
+			<li class="mui-table-view-cell mui-collapse">
+				<a class="mui-navigate-right" href="#"><span class="mui-icon mui-icon-list"></span>{$itme.menuName}</a>
+				<div class="mui-collapse-content">
+					<ul class="mui-table-view">
+					{volist name="itme.childMenu" id="childitme"}
+						<li id="{$childitme.authName}" class="mui-table-view-cell">
+							<a class="mui-navigate-right" href="#">
+								{$childitme.menuName}
+							</a>
+						</li>
+					{/volist}	
+					</ul>
+				</div>
+			</li>
+		{/volist}	
+		</ul>
+	</div>
+	<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<!-- 可选择菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#passWordChange">修改密码</a>
+		  </li>
+		  <li id="logout" class="mui-table-view-cell">
+			<a href="#">退出</a>
+		  </li>
+		</ul>
+		<!-- 取消菜单 -->
+		<ul class="mui-table-view">
+		  <li class="mui-table-view-cell">
+			<a href="#sheet1"><b>取消</b></a>
+		  </li>
+		</ul>
+	</div>
+	<div id="passWordChange" class="mui-popover mui-popover-bottom mui-popover-action ">
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<label>原始密码</label>
+				<input type="password" name="oldPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>新密码</label>
+				<input type="password" name="newPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-input-row">
+				<label>重复新密码</label>
+				<input type="password" name="repPassword" class="mui-input-clear" placeholder="请输入">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" id="passWordBtn" class="mui-btn mui-btn-primary">提交</button>
+			</div>
+		</form>
+	</div>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/MUI/js/mui.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+mui.ready(function (){
+	mui.init();
+	
+	{volist name="menu" id="itme"}
+		{volist name="itme.childMenu" id="childitme"}
+			mui('body').on('tap','#{$childitme.authName}',function(){
+				window.location.href = "{$childitme.url}";
+			});
+		{/volist}	
+	{/volist}
+	
+	
+	//修改密码提交
+	mui('#passWordChange').on('tap','#passWordBtn',function(){
+		var oldPassword = $('#passWordChange').find('input[name="oldPassword"]').val();
+		var newPassword = $('#passWordChange').find('input[name="newPassword"]').val();
+		var repPassword = $('#passWordChange').find('input[name="repPassword"]').val();
+		console.log('oldPassword');
+		if(newPassword.length<6){
+			mui.toast('密码不能少于6个字符');
+			return false;
+		}
+		if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(newPassword)){
+			
+			mui.toast('请使用英文字符和数字加“~!@#$%^&*”');
+			return false;
+		}
+		if(repPassword!=newPassword){
+			mui.toast('重复密码与第一次输入的不一致');
+			return false;
+		}
+		$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:{'oldPassword':oldPassword,'newPassword':newPassword,'repPassword':repPassword},
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						mui.toast(data.message);
+						window.location.href = "{:url('user/login')}";
+					}else{				
+						mui.toast(data.message);
+						
+					}
+				}
+			});
+		
+	});
+	//点击退出
+	mui('body').on('tap','#logout',function(){
+		window.location.href = "{:url('user/logout')}";
+	});
+});
+</script>
+</body>
+</html>

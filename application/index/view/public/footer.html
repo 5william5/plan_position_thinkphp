@@ -1,0 +1,117 @@
+  <!-- <div class="layui-footer"> -->
+    <!-- © layui.com - 底部固定区域 -->
+  <!-- </div> -->
+	<div id="editPassInfo" style="display:none;padding:15px;padding-right:50px;">
+		<div class="layui-form" lay-filter="editPassForm">
+		  <div class="layui-form-item">
+			<label class="layui-form-label">原始密码</label>
+			<div class="layui-input-block">
+			  <input type="password" name="oldPassword" required  lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+			</div>
+		  </div>
+		  <div class="layui-form-item">
+			<label class="layui-form-label">新密码</label>
+			<div class="layui-input-block">
+			  <input type="password" name="newPassword" required  lay-verify="required|password" placeholder="请输入" autocomplete="off" class="layui-input">
+			</div>
+		  </div>
+		  <div class="layui-form-item">
+			<label class="layui-form-label">重复新密码</label>
+			<div class="layui-input-block">
+			  <input type="password" name="repPassword" required lay-verify="required|repassword" placeholder="请输入" autocomplete="off" class="layui-input">
+			</div>
+		  </div>
+		  <div class="layui-form-item">
+			<div class="layui-input-block">
+			  <button class="layui-btn" lay-submit lay-filter="passWordSubmit">提交</button>
+			</div>
+		  </div>
+		</div>
+	</div>
+</div>
+{load href="__STATIC__/js/jquery-3.3.1.min.js"/}
+{load href="__STATIC__/layui/layui.js"/}
+<script>
+$(document).ready(function(){
+	$('#leftFlexible').on('click',function(){
+		if($('#leftMenu').css('width')=='200px'){
+			$('#leftMenu').css('width','0px');
+			$('.layui-body').css('left','0px');
+			$('.layui-footer').css('left','0px');
+			$(this).find('i').removeClass('layui-icon-shrink-right');
+			$(this).find('i').addClass('layui-icon-spread-left');
+			
+		}else{
+			$('#leftMenu').css('width','200px');
+			$('.layui-body').css('left','200px');
+			$('.layui-footer').css('left','200px');
+			$(this).find('i').removeClass('layui-icon-spread-left');
+			$(this).find('i').addClass('layui-icon-shrink-right');
+		}
+	});
+	layui.use(['element','form','layer'], function(){
+	  var element = layui.element,
+		  form = layui.form,
+		  layer = layui.layer;
+	
+		//点击修改密码
+		$('#setPassword').on('click',function(){
+			layer.open({
+				type: 1, 
+				title:'修改密码',
+				area: ['500px', '300px'],
+				content: $('#editPassInfo'),
+				cancel: function(index, layero){ 
+					$(layero).find('input').val('');
+					}
+			});
+		
+		});
+		//提交时对表单字段的验证
+		form.verify({
+			//密码验证
+			password: function(value, item){
+				if(value.length<6){
+					return '密码不能少于6个字符';
+				}
+				if(!new RegExp("^[a-zA-Z0-9~!@#$%^&*]+$").test(value)){
+					return '请使用英文字符和数字加“~!@#$%^&*”';
+				}
+			},
+			//重复密码验证
+			repassword:function(value, item){
+				if(value!=$('#editPassInfo').find('input[name="newPassword"]').val()){
+					return '重复密码与第一次输入的不一致';
+				}
+			}
+		});
+		//设置密码提交
+		form.on('submit(passWordSubmit)', function(obj){
+			$.ajax({
+				type:"POST",
+				url:"{:url('user/SetPassword')}",
+				data:obj.field,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){		
+						//特别注意这里手册上没有写明，layer.close(index)中的index显示的是数字
+						//layer每开一个层就会加1，要准确关闭的话，就要获取，这个层的‘times’属性的值
+						layer.close($(obj.elem).parents('.layui-layer-page').attr('times'));
+						$(obj.elem).parents('.layui-form').find('input').val('');
+						layer.alert(data.message, function(index){
+						  //do something
+						  window.location.href = "{:url('user/login')}";
+						  layer.close(index);
+						}); 
+					}else{				
+						layer.msg(data.message);
+						
+					}
+				}
+			});
+			return false;
+		});
+		  
+	});
+});
+</script>

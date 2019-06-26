@@ -1,0 +1,374 @@
+﻿{extend name="public/base"/}
+
+{block name="seo"}
+<title>订单管理系统</title>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+{/block}
+
+{block name="content"}
+<div class="layui-body">
+	<div style="padding: 15px;">
+		<div class="layui-row layui-col-space15">
+			<!-- <div class="layui-col-md4"> -->
+				<!-- <div class="layui-card"> -->
+					<!-- <div class="layui-card-header">客户设置</div> -->
+					<!-- <div class="layui-card-body"> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12" style="margin-bottom:10px;"> -->
+								<!-- <div class="layui-input-inline"> -->
+									<!-- <input type="text" id="cstmr_name" required  lay-verify="required" placeholder="请输入客户名称" autocomplete="off" class="layui-input" style="width:200px;"> -->
+								<!-- </div> -->
+								<!-- <button class="layui-btn" id="searchCstmr">查询</button> -->
+							<!-- </div> -->
+						<!-- </div> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12"> -->
+								<!-- <button class="layui-btn" id="addCstmr">新增</button> -->
+							<!-- </div> -->
+						<!-- </div> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12"> -->
+								<!-- <table id="cstmrList" lay-filter="cstmrListf"></table> -->
+							<!-- </div> -->
+						<!-- </div> -->
+					<!-- </div> -->
+				<!-- </div> -->
+			<!-- </div> -->
+			<!-- <div class="layui-col-md4"> -->
+				<!-- <div class="layui-card"> -->
+					<!-- <div class="layui-card-header">渠道设置</div> -->
+					<!-- <div class="layui-card-body"> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12" style="margin-bottom:10px;"> -->
+								<!-- <div class="layui-input-inline"> -->
+									<!-- <input type="text" id="channel_name" required  lay-verify="required" placeholder="请输入渠道名称" autocomplete="off" class="layui-input" style="width:200px;"> -->
+								<!-- </div> -->
+								<!-- <button class="layui-btn" id="searchChannel">查询</button> -->
+							<!-- </div> -->
+						<!-- </div> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12"> -->
+								<!-- <button class="layui-btn" id="addChannel">新增</button> -->
+							<!-- </div> -->
+						<!-- </div> -->
+						<!-- <div class="layui-row"> -->
+							<!-- <div class="layui-col-md12"> -->
+								<!-- <table id="channelList" lay-filter="channelListf"></table> -->
+							<!-- </div> -->
+						<!-- </div> -->
+					<!-- </div> -->
+				<!-- </div> -->
+			<!-- </div> -->
+			<div class="layui-col-md6">
+				<div class="layui-card">
+					<div class="layui-card-header">机场三字码设置</div>
+					<div class="layui-card-body">
+						<div class="layui-row">
+							<div class="layui-col-md12" style="margin-bottom:10px;">
+								<div class="layui-input-inline">
+									<input type="text" id="airport_code" required  lay-verify="required" placeholder="请输入三字码" autocomplete="off" class="layui-input" style="width:200px;">
+								</div>
+								<div class="layui-input-inline">
+									<input type="text" id="airport" required  lay-verify="required" placeholder="请输入机场名称" autocomplete="off" class="layui-input" style="width:200px;">
+								</div>
+								<button class="layui-btn" id="searchAirportCode">查询</button>
+							</div>
+						</div>
+						<div class="layui-row">
+							<div class="layui-col-md12">
+								<button class="layui-btn" id="addAirportCode">新增</button>
+							</div>
+						</div>
+						<div class="layui-row">
+							<div class="layui-col-md12">
+								<table id="airportCodeList" lay-filter="airportCodeListf"></table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div> 
+</div>
+<div id="addAirportInfo" style="display:none;padding:15px;padding-right:50px;">
+	<div class="layui-form" lay-filter="addAirportForm">
+	  <div class="layui-form-item">
+		<label class="layui-form-label">机场三字码</label>
+		<div class="layui-input-block">
+		  <input type="text" name="code" lay-verify="required|airportCode" placeholder="请输入" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  <div class="layui-form-item">
+		<label class="layui-form-label">机场名称</label>
+		<div class="layui-input-block">
+		  <input type="text" name="airport" lay-verify="required|airport" placeholder="请输入" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  <div class="layui-form-item">
+		<div class="layui-input-block">
+		  <button class="layui-btn" lay-submit lay-filter="addAirportSubmit">提交</button>
+		</div>
+	  </div>
+	</div>
+</div>
+<div id="setAirportInfo" style="display:none;padding:15px;padding-right:50px;">
+	<div class="layui-form" lay-filter="setAirportForm">
+	  <div class="layui-form-item">
+		<label class="layui-form-label">编号</label>
+		<div class="layui-input-block">
+		  <input type="text" name="id" lay-verify="required" readonly placeholder="请输入" autocomplete="off" class="layui-input layui-disabled">
+		</div>
+	  </div>
+	  <div class="layui-form-item">
+		<label class="layui-form-label">机场三字码</label>
+		<div class="layui-input-block">
+		  <input type="text" name="code" lay-verify="required|airportCode" placeholder="请输入" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  <div class="layui-form-item">
+		<label class="layui-form-label">机场名称</label>
+		<div class="layui-input-block">
+		  <input type="text" name="airport" lay-verify="required|airport" placeholder="请输入" autocomplete="off" class="layui-input">
+		</div>
+	  </div>
+	  <div class="layui-form-item">
+		<div class="layui-input-block">
+		  <button class="layui-btn" lay-submit lay-filter="setAirportSubmit">提交</button>
+		</div>
+	  </div>
+	</div>
+</div>
+{/block}
+
+{block name="js"}
+
+<style type="text/css">
+.layui-card-header{
+   background:#D3D3D3;
+	}
+.layui-card-body{
+	
+	}
+</style>
+<script type="text/html" id="SetCol">
+	<a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">修改</a>
+	<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="dele">删除</a>
+</script>
+<script type="text/html" id="channelSetCol">
+	{{#  if(d.id != 0){ }}
+		<a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">修改</a>
+		<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="dele">删除</a>
+	{{#  } }} 
+</script>
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript">
+$(document).ready(function(){
+	//表单令牌保存
+	if(typeof(Storage)!=="undefined")
+	{
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+	
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}	
+			
+	layui.use(['element','form','table','layer','laytpl'], function(){
+	   var element = layui.element,
+		  form = layui.form,
+		  table = layui.table,
+		  layer = layui.layer,
+		  laytpl = layui.laytpl;
+	  
+	  //左侧菜单样式设置
+	$('#menu-0').parent().addClass('layui-nav-itemed');
+	$('#menu-0-2').parent().addClass('layui-this');
+	
+	
+	  //机场三字码数据表格  
+	  table.render({
+		elem: '#airportCodeList'
+		,id:'airportCodeTable'
+		,height: 'full-350'
+		//,defaultToolbar:['filter', 'print']
+		//,toolbar: '#orderHeadBar'
+		,url: '{:url('PlanBasicData/OutreachAirportCodeData')}' //数据接口
+		,page: true //开启分页
+		,limit: 20
+		,cellMinWidth: 60 
+		,text: {
+				none: '暂无相关数据' //默认：无数据。
+			  }
+		,cols: [[ //表头
+		  {field: 'id', title: '编号', sort: true,width:80}
+		  ,{field: 'code', title: '三字码',width:80}
+		  ,{field: 'airport', title: '机场',width:180}
+		  ,{fixed: 'right', title:'操作', toolbar: '#SetCol',unresize: true}
+		]]
+	  });
+	  //自动去除input框中两边的空格
+		$('body').on('blur','input',function(){
+			$(this).val($(this).val().trim());
+		});
+	  
+		//机场三字码表中工具栏修改\删除
+		table.on('tool(airportCodeListf)', function(obj){
+			var coldata = obj.data; //获得当前行数据
+			var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+
+			//点击编辑按钮
+			if(layEvent === 'edit'){
+				form.val("setAirportForm", {
+				  'id': coldata['id'] 
+				  ,'code': coldata['code'] 
+				  ,'airport':coldata['airport']
+				})
+				layer.open({
+					type: 1, 
+					title:'添加机场3字码',
+					area: ['500px', '300px'],
+					content: $('#setAirportInfo'),
+					cancel: function(index, layero){ 
+						$(layero).find('input').val('');
+						}
+					});
+				
+			//点击删除按钮
+			}else if(layEvent === 'dele'){
+				layer.confirm('确认删除?', function(index){
+				  $.ajax({
+						type:"POST",
+						url:"{:url('PlanBasicData/AirportCodeDelete')}",
+						data:{'id':coldata['id']},
+						dataType:'json',
+						success:function(data){
+							if(data.status==1){	
+								layer.msg(data.message);
+								layer.close(index);
+								table.reload('airportCodeTable');
+							}else{				
+								layer.msg(data.message);
+							}
+						}
+						});
+				}); 
+					
+			}
+		});
+		//搜索机场三字码
+		$('#searchAirportCode').on('click',function(){
+			var airport_code = $('#airport_code').val();
+			var airport = $('#airport').val();
+			table.reload('airportCodeTable', {
+			  url:'{:url('PlanBasicData/AirportCodeSearch')}'
+			  ,where: { //设定异步数据接口的额外参数，任意设
+				code: airport_code,
+				airport:airport
+			  }
+			  ,page: {
+				curr: 1 //重新从第 1 页开始
+			  }
+			  ,text: {
+				none: '暂无相关数据' //默认：无数据。
+			  }
+			});
+		});
+		//新增机场三字码 addAirportInfo
+		$('#addAirportCode').on('click',function(){
+			layer.open({
+				type: 1, 
+				title:'添加机场3字码',
+				area: ['500px', '300px'],
+				content: $('#addAirportInfo'),
+				cancel: function(index, layero){ 
+					$(layero).find('input').val('');
+					}
+				});
+			   
+		});
+		//机场三字码自动大写
+		$('#addAirportInfo').on('input propertychange','input[name="code"]',function(event){
+			$(this).val($(this).val().toUpperCase());
+		});
+		$('#setAirportInfo').on('input propertychange','input[name="code"]',function(event){
+			$(this).val($(this).val().toUpperCase());
+		});
+		//提交时对表单字段的验证
+		form.verify({
+			
+		  //机场三字码格式验证
+		  airportCode:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^[A-Z]{3}$').test(value)){
+			  return '三字码格式格式错误';
+			}
+		  },
+		  //机场名称格式验证
+		  airport:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^[a-zA-Z0-9_\u4e00-\u9fa5\\S·]+$').test(value)){
+			  return '机场名称格式不能有特殊字符';
+			}
+		  }
+		  
+		});
+		//机场三字码修改提交
+	  form.on('submit(setAirportSubmit)', function(obj){
+		  obj.field['__token__'] = sessionStorage.getItem('__token__');
+		  $.ajax({
+			type:"POST",
+			url:"{:url('PlanBasicData/AirportCodeUpdata')}",
+			data:obj.field,
+			dataType:'json',
+			success:function(data){
+				if(data.status==1){	
+					layer.msg(data.message);
+					layer.close($(obj.elem).parents('.layui-layer-page').attr('times'));
+					table.reload('airportCodeTable');
+				}else{				
+					layer.msg(data.message);
+				}
+			},
+			complete:function(xmlHttpRequest){
+				var token = xmlHttpRequest.getResponseHeader('__token__');
+				//console.log('__token__响应头字段：'+ token);	
+				sessionStorage.setItem('__token__',token);
+			}
+			});
+		  return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+		});
+		//机场三字码新增提交
+	  form.on('submit(addAirportSubmit)', function(obj){
+		  obj.field['__token__'] = sessionStorage.getItem('__token__');
+		  $.ajax({
+				type:"POST",
+				url:"{:url('PlanBasicData/AirportCodeAdd')}",
+				data:obj.field,
+				dataType:'json',
+				success:function(data){
+					if(data.status==1){	
+						layer.msg(data.message);
+						layer.close($(obj.elem).parents('.layui-layer-page').attr('times'));
+						table.reload('airportCodeTable');
+					}else{				
+						layer.msg(data.message);
+					}
+				},
+				complete:function(xmlHttpRequest){
+					var token = xmlHttpRequest.getResponseHeader('__token__');
+					//console.log('__token__响应头字段：'+ token);	
+					sessionStorage.setItem('__token__',token);
+				}
+				});
+		  return false; //阻止表单跳转。如果需要表单跳转，去掉这段即可。
+		});
+	  
+	  
+	});
+});
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+{/block}
+
+</body>
+</html>

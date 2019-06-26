@@ -1,0 +1,694 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<link rel="stylesheet" href="__STATIC__/layui/css/layui.css">
+	<title>新增计划位</title>
+</head>
+<body>
+<div style="height:44px;width:100%;background-color:#f7f7f7;position:fixed;z-index:999;">
+	<a class="layui-icon layui-icon-left" style="display:block;font-size:24px;margin-left:10px;margin-top:10px;color:#007aff;" onclick="javascript:history.back(-1);"></a> 
+</div>
+<div style="height:44px;"></div>
+<div id='form' class="layui-form">
+	<fieldset class="layui-elem-field">
+	<legend>基本信息</legend>
+		<div class="layui-field-box" id="orderMainTable">
+			<table style="width:100%;border-collapse:separate;border-spacing:10px;">
+				<tr>
+					<td style="width:7%;">航线三字码：</td>
+					<td style="width:40%;">
+						<input type="text" name="air_line_code" id="air_line_code" lay-verify="required|airLineCode" placeholder="请输入" autocomplete="off" class="layui-input">
+					</td>
+				</tr>
+				<tr>	
+					<td style="width:7%;">航线：</td>
+					<td style="width:40%;">
+						<input type="text" name="air_line_text" id="air_line_text" lay-verify="required" readonly placeholder="" autocomplete="off" class="layui-input">
+					</td>
+				</tr>
+				<tr>
+					<td style="width:7%;">航班号：</td>
+					<td id="flightTd">
+					</td>
+				</tr>
+				<tr>
+					<td style="width:7%;">起飞时间：</td>
+					<td id="air_time_td">
+						
+					</td>
+				</tr>
+				<tr>
+					<td style="width:7%;">月份：</td>
+					<td>
+						<input type="text"name="month" id="month" class="layui-input" lay-verify="required|month" placeholder="">
+					</td>
+				</tr>
+				<tr>
+					<td style="width:7%;">负责人：</td>
+					<td>
+						<input type="text"name="manager" id="manager" class="layui-input" lay-verify="manager" placeholder="">
+					</td>
+					
+				</tr>
+			</table>
+			<hr class="layui-bg-black">
+			<div class="layui-row">
+				<div class="layui-col-sm12">
+					<button class="layui-btn layui-btn-normal layui-btn-sm" id="createPlan">生成整月计划</button>
+									
+				</div>
+			</div>
+		</div>
+	</fieldset>
+	<div class="layui-row" style="height:44px;"></div>
+	<div id="plan_postition_list">		
+	</div>
+	 <div class="footerBut">
+		<div class="layui-row">
+			<div class="layui-col-sm4 layui-col-sm-offset4">
+				<button id="submitPlan" class="layui-btn layui-btn-lg" lay-submit lay-filter="submitPlan">录入保存</button>
+			</div>
+		</div>
+	</div>
+	
+ </div>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/layui/layui.js"></script>
+<style>
+	.footerBut{
+		position:fixed; 
+		bottom:0;
+		width:100%;
+		background-color:#D3D3D3;
+		opacity:0.8;
+		text-align:center;
+		z-index:9999;
+				}
+	.plan_list_date_td{
+		width:85px;
+	}
+	.plan_list_seat_td{
+		width:50px;
+	}
+	.plan_list_price_td{
+		width:70px;
+	}
+	.plan_list_date_set_td{
+		width:30px;
+	}
+	.plan_list_limit_td{
+		width:130px;
+	}
+	
+	
+	
+</style>
+<script type="text/html" id="plan_postition_html">
+	{{#
+		var air_timeArr =d.air_time.split('-');
+	}}
+	<table class="layui-table" lay-size="sm">
+		<thead>
+			<tr id="setTr">
+				<td></td>
+				{{# for(var i=2;i<=d.tripN;i++){ }}
+					<td>
+						间隔天数
+						<div class="layui-input-inline">
+							<input type="text" name="departure_date_set{{ i }}" lay-verify="required|differDays" placeholder="" autocomplete="off" class="layui-input plan_list_date_set_td" value="">
+						</div>
+					</td>
+				{{# } }}
+				<td>
+					<input type="text" name="seat_number_set" lay-verify="" placeholder="" autocomplete="off" class="layui-input plan_list_seat_td" value="">
+				</td>
+				<td>
+					<input type="text" name="selling_price_set" lay-verify="" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="">
+				</td>
+				<td>
+					<input type="text" name="reserve_price_set" lay-verify="" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="">
+				</td>
+				<td>
+					起飞前天数
+					<div class="layui-input-inline">
+						<input type="text" name="time_limit_set" lay-verify="required" placeholder="" autocomplete="off" class="layui-input plan_list_limit_set_td" value="">
+					</div>
+				</td>
+				<td><button class="layui-btn layui-btn-xs layui-btn-normal" id="plSet">批量设置</button></td>
+			</tr>
+			<tr>
+				{{# for(var i=1;i<=d.tripN;i++){ }}
+					<td>第{{ i }}程日期</td>
+				{{# } }}
+				<td>座位数</td>
+				<td>最低销售价</td>
+				<td>含税底价</td>
+				<td>出票时限</td>
+				<td>操作</td>
+			</tr>
+		</thead>
+		<tbody id="plan_table">
+			{{# for(var i=1;i<=d.dayN;i++){ }}
+			<tr>
+				{{# for(var t=1;t<=d.tripN;t++){ }}
+					<td>
+						<input type="text" name="departure_date_{{ t }}" lay-verify="required|airDate" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ d.year+'-'+d.month+'-'+(i>9?i:'0'+i) }}">
+						<input type="text" name="air_time{{ t }}" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input plan_list_date_td" value="{{ air_timeArr[t-1] }}">
+					</td>
+				{{# } }}
+				<td style="width:100px;">
+					<div class="layui-input-inline">
+						<input type="text" name="seat_number" lay-verify="required|seat" placeholder="" autocomplete="off" class="layui-input plan_list_seat_td" value="">
+					</div>
+					<button class="layui-btn layui-btn-xs seatPLX"><i class="layui-icon layui-icon-down"></i></button>
+				</td>
+				<td style="width:110px;">
+					<div class="layui-input-inline">
+						<input type="text" name="selling_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="">
+					</div>
+					<button class="layui-btn layui-btn-xs sellingPLX"><i class="layui-icon layui-icon-down"></i></button>
+				</td>
+				<td style="width:110px;">
+					<div class="layui-input-inline">
+						<input type="text" name="reserve_price" lay-verify="required|money" placeholder="" autocomplete="off" class="layui-input plan_list_price_td" value="">
+					</div>
+					<button class="layui-btn layui-btn-xs reservePLX"><i class="layui-icon layui-icon-down"></i></button>
+				</td>
+				<td style="width:150px;">
+					<input type="text" name="time_limit" lay-verify="required|timeLimit" placeholder="" autocomplete="off" class="layui-input plan_list_limit_td" value="">
+				</td>
+				<td><button class="layui-btn layui-btn-xs layui-btn-danger delPlan">删除</button></td>
+			</tr>
+			{{# } }}
+		</tbody>
+	</table>
+	<div class="layui-row" style="height:44px;"></div>
+</script>
+<script>
+$(document).ready(function(){
+	
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		//机场三字码数据保存
+		var airportCodeDataStr = JSON.stringify({$airportCodeData});
+		sessionStorage.setItem('airportCodeData',airportCodeDataStr);
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	
+	layui.use(['element','form','layer','laydate','laytpl'], function(){
+		var element = layui.element,
+		form = layui.form,
+		layer = layui.layer,
+		laydate = layui.laydate,
+		laytpl = layui.laytpl;
+		
+		//月份选择器
+		laydate.render({
+			elem: '#month'
+			,type: 'month'
+		});
+		//添加输入监控事件根据机场3字码自动填写出发和到达机场
+		$('#form').on('input propertychange','input[name="air_line_code"]',function(event){
+			var airportCodeData = JSON.parse(sessionStorage.getItem('airportCodeData'));//导入机场三字码数据
+			$(this).val($(this).val().toUpperCase());//转化为大写
+			$(this).val($(this).val().replace(/,|，/g,','));//把逗号转化成英文逗号
+			$(this).val($(this).val().replace(/\s/g,''));//删空白字符
+			var nowCode = $(this).val().toUpperCase();
+			if(nowCode.length>=3){
+				//判断是否有,号分割
+				if(/,/g.test(nowCode)){
+					var vCodeArr = nowCode.split(',');
+					var n = 0;//行程数量
+					var strCode = '';
+					$.each(vCodeArr,function(index, vCode){
+						//是否能是3的倍数
+						if(vCode.length%3==0){
+							if(vCode.length>=6){
+								n = n+(vCode.length/3-1);
+								var x = 3;
+								for (var i = 0, l = vCode.length; i < l/x; i++) {
+									var a = vCode.slice(x*i, x*(i+1));
+									var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+									if(typeof(airport) != 'undefined'){
+										//$('#air_line_code').css('background','#fff');
+										strCode = strCode+airport['airport']+'-';
+									}else{
+										//$('#air_line_code').css('background','red');
+									}
+								}
+								strCode = strCode.slice(0,strCode.length-1) +'&';
+							}else{
+								//$('#air_line_code').css('background','red');
+							}
+						}else{
+							//$('#air_line_code').css('background','red');
+						}
+					});
+					if(n<=4){
+						$(this).parents('table').find('input[name="air_line_text"]').val(strCode.slice(0,strCode.length-1));
+						var flightInputR = '';
+						var airTimeInputR= '';
+						for(var i=1;i<=n;i++){
+							var flightInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'flight'+i+'" lay-verify="required" placeholder="" autocomplete="off" class="layui-input"></div>';
+							flightInputR = flightInputR+flightInput;
+							var airTimeInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'air_time'+i+'" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input"></div>';
+							airTimeInputR = airTimeInputR+airTimeInput;
+						}
+						$('#flightTd').html(flightInputR);
+						$('#air_time_td').html(airTimeInputR);
+					}else{
+						layer.alert('最多4个行程');
+					}
+				}else{
+					var n = 0;//行程数量
+					n = nowCode.length/3-1;
+					if(n<=4){
+						var strCode = '';
+						var x = 3;
+						for (var i = 0, l = nowCode.length; i < l/x; i++) {
+							var a = nowCode.slice(x*i, x*(i+1));
+							var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+							if(typeof(airport) != 'undefined'){
+								//$('#air_line_code').css('background','#fff');
+								strCode = strCode+airport['airport']+'-';
+							}else{
+								//$('#air_line_code').css('background','red');
+							}
+						}
+						$(this).parents('table').find('input[name="air_line_text"]').val(strCode.slice(0,strCode.length-1));
+						var flightInputR = '';
+						var airTimeInputR= '';
+						for(var i=1;i<=n;i++){
+							var flightInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'flight'+i+'" lay-verify="required" placeholder="" autocomplete="off" class="layui-input"></div>';
+							flightInputR = flightInputR+flightInput;
+							var airTimeInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'air_time'+i+'" lay-verify="required|AirTime" placeholder="" autocomplete="off" class="layui-input"></div>';
+							airTimeInputR = airTimeInputR+airTimeInput;
+						}
+						$('#flightTd').html(flightInputR);
+						$('#air_time_td').html(airTimeInputR);
+					}else{
+						layer.alert('最多4个行程');
+					}
+					
+				}
+			}else{
+				$(this).parents('table').find('input[name="air_line_text"]').val('');
+				$('#flightTd').html('');
+				$('#air_time_td').html('');
+			}
+		});
+		//输入航班自动大写
+		$('#form').on('input propertychange','input[name^="flight"]',function(event){
+			$(this).val($(this).val().toUpperCase());//转化为大写
+		});
+		//输入起飞时间自动中文冒号换英文冒号
+		$('#form').on('input propertychange','input[name^="air_time"]',function(event){
+			$(this).val($(this).val().replace('：',':'));//转化为大写
+		});
+		
+		//点击生成整月计划
+		$('#form').on('click','#createPlan',function(){
+			if($('#month').val()!=''){
+				var air_line_text = $('#air_line_text').val();
+				var tripCodeText = $('#air_line_code').val();
+				var monthArr = $('#month').val().split('-'); 
+				if(/,/g.test(tripCodeText)){
+					var vCodeArr = tripCodeText.split(',');
+					var tripN = 0;//行程数量
+					$.each(vCodeArr,function(index, vCode){
+						//是否能是3的倍数
+						if(vCode.length%3==0){
+							if(vCode.length>=6){
+								tripN = tripN+(vCode.length/3-1);
+							}
+						}
+					});
+				}else{
+					if(tripCodeText.length%3==0){
+						if(tripCodeText.length>=6){
+							var tripN = 0;//行程数量
+							tripN = tripCodeText.length/3-1;
+						}
+					}
+				}
+				var year = monthArr[0];
+				var month = monthArr[1];
+				var dayN = new Date(year,month,0).getDate();//月份的天数
+				var flight = '';
+				$('#flightTd').find('input').each(function(){
+					flight = flight+$(this).val()+'-';
+				});
+				flight = flight.slice(0,flight.length-1);
+				
+				var air_time = '';
+				$('#air_time_td').find('input').each(function(){
+					air_time = air_time+$(this).val()+'-';
+				});
+				air_time = air_time.slice(0,air_time.length-1);
+				
+				var modelD = {'tripN':tripN,'year':year,'month':month,'dayN':dayN,'air_line_text':air_line_text,'flight':flight,'air_time':air_time};
+				//将处理好的信息渲染表格后载入
+				var plan_postition_html = $('#plan_postition_html').html();
+				laytpl(plan_postition_html).render(modelD, function(htmlData){
+				  $('#plan_postition_list').html(htmlData);
+				});
+			}else{
+				layer.msg('请选择月份');
+			}
+		});
+		//点击批量设置
+		$('#form').on('click','#plSet',function(){
+			var setD = {};
+			$('#setTr').find('input').each(function(){
+				setD[$(this).attr('name')]=$(this).val();
+			});
+			$.each(setD,function(k,v){
+				//设置第2程起飞日期
+				if(k=='departure_date_set2'){
+					$('#plan_table').find('tr').each(function(){
+						var date1 = $(this).find('input[name="departure_date_1"]').val();
+						if (v == undefined || v == '') {
+							var days = 1;
+						 }else{
+							var days = Number(v)-1;
+						 }
+						 var date = new Date(date1);
+						 date.setDate(date.getDate() + days);
+						 var month = date.getMonth() + 1; //月份从0开始所以需要+1
+						 var day = date.getDate();
+						 var date2 = date.getFullYear() + '-' +(month<10?'0'+month:month)+ '-' +(day<10?'0'+day:day);
+						 $(this).find('input[name="departure_date_2"]').val(date2);
+					});
+				//设置第3程起飞日期
+				}else if(k=='departure_date_set3'){
+					$('#plan_table').find('tr').each(function(){
+						var date1 = $(this).find('input[name="departure_date_2"]').val();
+						if (v == undefined || v == '') {
+							var days = 1;
+						 }else{
+							var days = Number(v)-1;
+						 }
+						 var date = new Date(date1);
+						 date.setDate(date.getDate() + days);
+						 var month = date.getMonth() + 1; //月份从0开始所以需要+1
+						 var day = date.getDate();
+						 var date2 = date.getFullYear() + '-' +(month<10?'0'+month:month)+ '-' +(day<10?'0'+day:day);
+						 $(this).find('input[name="departure_date_3"]').val(date2);
+					});
+				//设置第4程起飞日期
+				}else if(k=='departure_date_set4'){
+					$('#plan_table').find('tr').each(function(){
+						var date1 = $(this).find('input[name="departure_date_3"]').val();
+						if (v == undefined || v == '') {
+							var days = 1;
+						 }else{
+							var days = Number(v)-1;
+						 }
+						 var date = new Date(date1);
+						 date.setDate(date.getDate() + days);
+						 var month = date.getMonth() + 1; //月份从0开始所以需要+1
+						 var day = date.getDate();
+						 var date2 = date.getFullYear() + '-' +(month<10?'0'+month:month)+ '-' +(day<10?'0'+day:day);
+						 $(this).find('input[name="departure_date_4"]').val(date2);
+					});
+				//设置座位数量
+				}else if(k=='seat_number_set'){
+					$('#plan_table').find('input[name="seat_number"]').val(v);
+				//最低销售价
+				}else if(k=='selling_price_set'){
+					$('#plan_table').find('input[name="selling_price"]').val(v);
+				//含税底价
+				}else if(k=='reserve_price_set'){
+					$('#plan_table').find('input[name="reserve_price"]').val(v);
+				//出票时限
+				}else if(k=='time_limit_set'){
+					$('#plan_table').find('tr').each(function(){
+						var date1 = $(this).find('input[name="departure_date_1"]').val();
+						if (v == undefined || v == '') {
+							var days = 1;
+						 }else{
+							var days = Number(v);
+						 }
+						 var date = new Date(date1);
+						 date.setDate(date.getDate() - days);
+						 var month = date.getMonth() + 1; //月份从0开始所以需要+1
+						 var day = date.getDate();
+						 var date2 = date.getFullYear() + '-' +(month<10?'0'+month:month)+ '-' +(day<10?'0'+day:day);
+						 var time = $(this).find('input[name="air_time1"]').val();
+						 $(this).find('input[name="time_limit"]').val(date2+' '+time);
+					});
+				}
+			});
+		});
+		
+		//座位数栏，向下填入点击
+		$('#form').on('click','.seatPLX',function(){
+			var seat_number_now = $(this).parents('td').find('input[name="seat_number"]').val();
+			$(this).parents('tr').nextAll().find('input[name="seat_number"]').val(seat_number_now);
+		});
+		//最低销售价栏，向下填入点击
+		$('#form').on('click','.sellingPLX',function(){
+			var selling_price_now = $(this).parents('td').find('input[name="selling_price"]').val();
+			$(this).parents('tr').nextAll().find('input[name="selling_price"]').val(selling_price_now);
+		});
+		//含税底价栏，向下填入点击
+		$('#form').on('click','.reservePLX',function(){
+			var selling_price_now = $(this).parents('td').find('input[name="reserve_price"]').val();
+			$(this).parents('tr').nextAll().find('input[name="reserve_price"]').val(selling_price_now);
+		});
+		//点击删除
+		$('#form').on('click','.delPlan',function(){
+			$(this).parents('tr').remove();
+		});
+		//提交时对表单字段的验证
+		form.verify({
+		  
+		  //起飞日期格式验证
+		  airDate:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}-\\d{2}$').test(value)){
+			  return '起飞日期格式错误';
+			}
+		  },
+		  //座位数格式验证
+		  seat:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d+$').test(value)){
+				return '座位数格式错误';
+			}
+		  },
+		  //月份格式验证
+		  month:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}$').test(value)){
+				return '月份数格式错误';
+			}
+		  },
+		  //航线三字码格式验证
+		  airLineCode: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\w[\\w,]+$').test(value) && value!=''){
+				return '航线三字码是英文字母';
+			}
+		  },
+		  //起飞时间格式验证
+		  AirTime: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^[0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				return '起飞时间格式错误';
+			}
+		  },
+		  //间隔天数验证
+		  differDays: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{0,3}$').test(value)){
+				return '间隔天数格式错误';
+			}
+		  },
+		  //负责人信息格式验证
+		  manager: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(/[<>$]/.test(value)){
+			  return '不能使用特殊字符';
+			}
+			if(value.length>20){
+			  return '最多可以输入20个字符';
+			}
+		  },
+		  //金额格式验证
+		  money:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('(^[1-9]([0-9]+)?(\\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\\.[0-9]([0-9])?$)').test(value)){
+			  return '金额格式错误';
+			}
+		  },
+		  //时限格式验证
+		  timeLimit:function(value, item){
+			if(!new RegExp('^20[1-9][0-9]-[0-1][0-9]-[0-3][0-9] [0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				return '时限格式格式错误';
+			}
+		  }
+		});
+		//点击录入保存
+		form.on('submit(submitPlan)', function(data){
+			var air_line_code = $('#air_line_code').val();
+			var air_line_text = $('#air_line_text').val();
+			if(checkAirLineInfo(air_line_code,air_line_text)){
+				var flight = '';
+				$('#flightTd').find('input').each(function(){
+					flight = flight+$(this).val()+'-';
+				});
+				flight = flight.slice(0,flight.length-1);
+				/*
+				var air_time = '';
+				$('#air_time_td').find('input').each(function(){
+					air_time = air_time+$(this).val()+'-';
+				});
+				air_time = air_time.slice(0,air_time.length-1);
+				*/
+				var differ_days = '';
+				$('.plan_list_date_set_td').each(function(){
+					differ_days = differ_days+$(this).val()+'-';
+				});
+				differ_days = differ_days.slice(0,differ_days.length-1);
+				var month = $('#month').val();
+				var manager = $('#manager').val();
+				var plan_table = [];
+				$('#plan_table').find('tr').each(function(trIndex,trE){
+					plan_table[trIndex]={};
+					$(trE).find('input').each(function(inpIndex,inpE){
+						plan_table[trIndex][$(inpE).attr('name')] = $(inpE).val();
+					});
+					var air_time = '';
+					$(trE).find('input[name^="air_time"]').each(function(){
+						air_time = air_time+$(this).val()+'-';
+					});
+					plan_table[trIndex]['air_time']  = air_time.slice(0,air_time.length-1);
+				});
+				if(plan_table.length>0){
+					var postPlanInfo = {'air_line_code':air_line_code,'air_line_text':air_line_text,'flight':flight,'differ_days':differ_days,'month':month,'manager':manager,'plan_table':plan_table};
+					postPlanInfo['__token__'] = sessionStorage.getItem('__token__');
+					$.ajax({
+						type:"POST",
+						url:"{:url('SelfPlanManage/AddPlanData')}",
+						data:postPlanInfo,
+						dataType:'json',
+						success:function(data){
+							if(data.status==1){	
+								layer.msg(data.message);
+								window.location.href="{:url('SelfPlanManage/index')}";
+							}else{				
+								layer.msg(data.message);
+								
+							}
+						},
+						complete:function(xmlHttpRequest){
+							var token = xmlHttpRequest.getResponseHeader('__token__');
+							//console.log('__token__响应头字段：'+ token);	
+							sessionStorage.setItem('__token__',token);
+						}
+					});
+				}else{
+					layer.msg('最少提交一个计划');
+				}
+			}else{
+				layer.msg('航线信息有误，请检查');
+			}
+		});
+	});
+});
+//*****航线信息验证（3字码和文本信息）函数******	
+function checkAirLineInfo(codStr,textStr){
+	var airportCodeData = JSON.parse(sessionStorage.getItem('airportCodeData'));
+	//判断是否有,号分割
+	if(/,/g.test(codStr)){
+		var vCodeArr = codStr.split(',');
+		var codN = 0;//行程数量
+		var isV = true;
+		$.each(vCodeArr,function(index, vCode){
+			//是否能是3的倍数
+			if(vCode.length%3==0){
+				if(vCode.length>=6){
+					codN = codN+(vCode.length/3-1);
+					var x = 3;
+					for (var i = 0, l = vCode.length; i < l/x; i++) {
+						var a = vCode.slice(x*i, x*(i+1));
+						var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+						if(typeof(airport) == 'undefined'){
+							isV = false;
+						}
+					}
+				}else{
+					isV = false;
+				}
+			}else{
+				isV = false;
+			}
+		});
+		if(isV==false){
+			return false;
+		}
+		if(codN>4){
+			return false;
+		}
+	}else{
+		//是否能是3的倍数
+		if(codStr.length%3==0){
+			if(codStr.length>=6){
+				var codN = codStr.length/3-1;//行程数量
+				if(codN<=4){
+					var x = 3;
+					for (var i = 0, l = codStr.length; i < l/x; i++) {
+						var a = codStr.slice(x*i, x*(i+1));
+						var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+						if(typeof(airport) == 'undefined'){
+							return false;
+						}
+					}
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+	if(/&/g.test(textStr)){
+		var vTextArr = textStr.split('&');
+		var textN = 0;//行程数量
+		var isV = true;
+		$.each(vTextArr,function(index, vText){
+			if(vText.includes('-')){
+				textN = textN+vText.match(/-/g).length;
+			}else{
+				isV = false;
+			}
+		});
+		if(isV==false){
+			return false;
+		}
+		if(textN>4){
+			return false;
+		}
+	}else{
+		if(textStr.includes('-')){
+			var textN = textStr.match(/-/g).length;
+		}else{
+			return false;
+		}
+		if(textN>4){
+			return false;
+		}
+	}
+	if(codN==textN){
+		return true;
+	}else{
+		return false;
+	}
+}
+</script>
+</body>
+</html>

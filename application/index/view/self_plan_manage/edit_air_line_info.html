@@ -1,0 +1,423 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<link rel="stylesheet" href="__STATIC__/layui/css/layui.css">
+	<title>修改航线信息</title>
+</head>
+<body>
+
+<div id='form' class="layui-form">
+	
+	<div id="orderMainTable">
+		<table style="width:100%;border-collapse:separate;border-spacing:10px;">
+			<tr class="layui-hide">
+				<td>航线id：</td>
+				<td id="airLineId">{$airLineData.id}</td>
+			</tr>
+			<tr>
+				<td style="width:10%;">航线三字码：</td>
+				<td style="width:40%;">
+					<input type="text" name="air_line_code" id="air_line_code" lay-verify="required|airLineCode" placeholder="请输入" autocomplete="off" class="layui-input" value="{$airLineData.air_line_code}">
+				</td>
+				<td style="width:7%;">航线：</td>
+				<td>
+					<input type="text" name="air_line_text" id="air_line_text" lay-verify="required" readonly placeholder="" autocomplete="off" class="layui-input" value="{$airLineData.air_line_text}">
+				</td>
+			</tr>
+			<tr>
+				<td>航班号：</td>
+				<td id="flightTd">
+				{php}
+					$flightArr = explode('-',$airLineData['flight']);
+					foreach($flightArr as $k=>$v){
+						echo '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'.'flight'.
+						($k+1).'" lay-verify="required" placeholder="" autocomplete="off" class="layui-input" value="'.$v.'"></div>';
+					}
+				{/php}
+				</td>
+				<td>月份：</td>
+				<td>
+					<input type="text"name="month" id="month" class="layui-input" lay-verify="required|month" placeholder="" value="{$airLineData.month}">
+				</td>
+			</tr>
+			<tr>
+				<td>间隔天数：</td>
+				<td id="differ_days_td" style="padding-left:35px;">
+				{php}
+					if(!empty($airLineData['differ_days'])){
+						$differDaysArr = explode('-',$airLineData['differ_days']);
+						foreach($differDaysArr as $k=>$v){
+							echo '<div class="layui-input-inline" style="width:70px;"><input type="text" name="'.'differ_days'.
+							($k+1).'" lay-verify="required|differDays" placeholder="" autocomplete="off" class="layui-input" value="'.$v.'"></div>';
+						}
+					}
+				{/php}
+				</td>
+			</tr>
+			<tr>
+				<td>负责人：</td>
+				<td>
+					<input type="text"name="manager" id="manager" class="layui-input" lay-verify="manager" placeholder="" value="{$airLineData.manager}">
+				</td>
+			</tr>
+		</table>
+	</div>
+	
+	 <div class="footerBut">
+		<div class="layui-row">
+			<div class="layui-col-sm4 layui-col-sm-offset4">
+				<button id="submitAirLine" class="layui-btn layui-btn-lg" lay-submit lay-filter="submitAirLine">保存</button>
+			</div>
+		</div>
+	</div>
+	
+ </div>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/layui/layui.js"></script>
+<style>
+	.footerBut{
+		position:fixed; 
+		bottom:0;
+		width:100%;
+		opacity:0.8;
+		text-align:center;
+		z-index:9999;
+				}
+	.plan_list_date_td{
+		width:85px;
+	}
+	.plan_list_seat_td{
+		width:50px;
+	}
+	.plan_list_price_td{
+		width:70px;
+	}
+	.plan_list_date_set_td{
+		width:30px;
+	}
+	
+	
+	
+</style>
+<script>
+$(document).ready(function(){
+	
+	if(typeof(Storage)!=="undefined")
+	{
+		//表单令牌保存
+		var token = '{$token}';
+		sessionStorage.setItem('__token__',token);
+		//机场三字码数据保存
+		var airportCodeDataStr = JSON.stringify({$airportCodeData});
+		sessionStorage.setItem('airportCodeData',airportCodeDataStr);
+	} else {
+		alert('浏览器不支持webStorage,提交将会出现错误');
+	}
+	
+	layui.use(['element','form','layer','laydate','laytpl'], function(){
+		var element = layui.element,
+		form = layui.form,
+		layer = layui.layer,
+		laydate = layui.laydate,
+		laytpl = layui.laytpl;
+		
+		//添加输入监控事件根据机场3字码自动填写出发和到达机场
+		$('#form').on('input propertychange','input[name="air_line_code"]',function(event){
+			var airportCodeData = JSON.parse(sessionStorage.getItem('airportCodeData'));//导入机场三字码数据
+			$(this).val($(this).val().toUpperCase());//转化为大写
+			$(this).val($(this).val().replace(/,|，/g,','));//把逗号转化成英文逗号
+			$(this).val($(this).val().replace(/\s/g,''));//删空白字符
+			var nowCode = $(this).val().toUpperCase();
+			if(nowCode.length>=3){
+				//判断是否有,号分割
+				if(/,/g.test(nowCode)){
+					var vCodeArr = nowCode.split(',');
+					var n = 0;//行程数量
+					var strCode = '';
+					$.each(vCodeArr,function(index, vCode){
+						//是否能是3的倍数
+						if(vCode.length%3==0){
+							if(vCode.length>=6){
+								n = n+(vCode.length/3-1);
+								var x = 3;
+								for (var i = 0, l = vCode.length; i < l/x; i++) {
+									var a = vCode.slice(x*i, x*(i+1));
+									var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+									if(typeof(airport) != 'undefined'){
+										//$('#air_line_code').css('background','#fff');
+										strCode = strCode+airport['airport']+'-';
+									}else{
+										//$('#air_line_code').css('background','red');
+									}
+								}
+								strCode = strCode.slice(0,strCode.length-1) +'&';
+							}else{
+								//$('#air_line_code').css('background','red');
+							}
+						}else{
+							//$('#air_line_code').css('background','red');
+						}
+					});
+					if(n<=4){
+						$(this).parents('table').find('input[name="air_line_text"]').val(strCode.slice(0,strCode.length-1));
+						var flightInputR = '';
+						var differDaysInputR ='';
+						for(var i=1;i<=n;i++){
+							var flightInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'flight'+i+'" lay-verify="required" placeholder="" autocomplete="off" class="layui-input"></div>';
+							flightInputR = flightInputR+flightInput;
+							if(i>1){
+								var differDaysInput = '<div class="layui-input-inline" style="width:70px;"><input type="text" name="'+'differ_days'+(i-1)+'" lay-verify="required|differDays" placeholder="" autocomplete="off" class="layui-input"></div>';
+								differDaysInputR = differDaysInputR+differDaysInput;
+							}
+						}
+						$('#flightTd').html(flightInputR);
+						$('#differ_days_td').html(differDaysInputR);
+					}else{
+						layer.alert('最多4个行程');
+					}
+				}else{
+					var n = 0;//行程数量
+					n = nowCode.length/3-1;
+					if(n<=4){
+						var strCode = '';
+						var x = 3;
+						for (var i = 0, l = nowCode.length; i < l/x; i++) {
+							var a = nowCode.slice(x*i, x*(i+1));
+							var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+							if(typeof(airport) != 'undefined'){
+								//$('#air_line_code').css('background','#fff');
+								strCode = strCode+airport['airport']+'-';
+							}else{
+								//$('#air_line_code').css('background','red');
+							}
+						}
+						$(this).parents('table').find('input[name="air_line_text"]').val(strCode.slice(0,strCode.length-1));
+						var flightInputR = '';
+						var differDaysInputR ='';
+						for(var i=1;i<=n;i++){
+							var flightInput = '<div class="layui-input-inline" style="width: 70px;"><input type="text" name="'+'flight'+i+'" lay-verify="required" placeholder="" autocomplete="off" class="layui-input"></div>';
+							flightInputR = flightInputR+flightInput;
+							if(i>1){
+								var differDaysInput = '<div class="layui-input-inline" style="width:70px;"><input type="text" name="'+'differ_days'+(i-1)+'" lay-verify="required|differDays" placeholder="" autocomplete="off" class="layui-input"></div>';
+								differDaysInputR = differDaysInputR+differDaysInput;
+							}
+						}
+						$('#flightTd').html(flightInputR);
+						$('#differ_days_td').html(differDaysInputR);
+					}else{
+						layer.alert('最多4个行程');
+					}
+					
+				}
+			}else{
+				$(this).parents('table').find('input[name="air_line_text"]').val('');
+				$('#flightTd').html('');
+				$('#differ_days_td').html('');
+			}
+		});
+		//输入航班自动大写
+		$('#form').on('input propertychange','input[name^="flight"]',function(event){
+			$(this).val($(this).val().toUpperCase());//转化为大写
+		});
+		//提交时对表单字段的验证
+		form.verify({
+		  
+		  //起飞日期格式验证
+		  airDate:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}-\\d{2}$').test(value)){
+			  return '起飞日期格式错误';
+			}
+		  },
+		  //座位数格式验证
+		  seat:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d+$').test(value)){
+				return '座位数格式错误';
+			}
+		  },
+		  //月份格式验证
+		  month:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{4}-\\d{2}$').test(value)){
+				return '月份数格式错误';
+			}
+		  },
+		  //航线三字码格式验证
+		  airLineCode: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\w[\\w,]+$').test(value) && value!=''){
+				return '航线三字码是英文字母';
+			}
+		  },
+		  //起飞时间格式验证
+		  AirTime: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^[0-2][0-9]:[0-5][0-9]$').test(value) && value!=''){
+				return '起飞时间格式错误';
+			}
+		  },
+		  //间隔天数验证
+		  differDays: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('^\\d{0,3}$').test(value)){
+				return '间隔天数格式错误';
+			}
+		  },
+		  //负责人信息格式验证
+		  manager: function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(/[<>$]/.test(value)){
+			  return '不能使用特殊字符';
+			}
+			if(value.length>20){
+			  return '最多可以输入20个字符';
+			}
+		  },
+		  //金额格式验证
+		  money:function(value, item){ //value：表单的值、item：表单的DOM对象
+			if(!new RegExp('(^[1-9]([0-9]+)?(\\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\\.[0-9]([0-9])?$)').test(value)){
+			  return '金额格式错误';
+			}
+		  }
+		});
+		//点击保存
+		form.on('submit(submitAirLine)', function(data){
+			var air_line_code = $('#air_line_code').val();
+			var air_line_text = $('#air_line_text').val();
+			if(checkAirLineInfo(air_line_code,air_line_text)){
+				var flight = '';
+				$('#flightTd').find('input').each(function(){
+					flight = flight+$(this).val()+'-';
+				});
+				flight = flight.slice(0,flight.length-1);;
+				var differ_days = '';
+				$('#differ_days_td').find('input').each(function(){
+					differ_days = differ_days+$(this).val()+'-';
+				});
+				differ_days = differ_days.slice(0,differ_days.length-1);
+				var month = $('#month').val();
+				var manager = $('#manager').val();
+				var airLineId = $('#airLineId').text();
+				var postPlanInfo = {'airLineId':airLineId,'air_line_code':air_line_code,'air_line_text':air_line_text,'flight':flight,'differ_days':differ_days,'month':month,'manager':manager};
+				postPlanInfo['__token__'] = sessionStorage.getItem('__token__');
+				$.ajax({
+					type:"POST",
+					url:"{:url('SelfPlanManage/EditAirLineData')}",
+					data:postPlanInfo,
+					dataType:'json',
+					success:function(data){
+						if(data.status==1){	
+							parent.layer.msg(data.message);
+							var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+							parent.layer.close(index);
+						}else{				
+							layer.msg(data.message);
+							
+						}
+					},
+					complete:function(xmlHttpRequest){
+						var token = xmlHttpRequest.getResponseHeader('__token__');
+						//console.log('__token__响应头字段：'+ token);	
+						sessionStorage.setItem('__token__',token);
+					}
+				});
+				
+			}else{
+				layer.msg('航线信息有误，请检查');
+			}
+		});
+	});
+});
+//*****航线信息验证（3字码和文本信息）函数******	
+function checkAirLineInfo(codStr,textStr){
+	var airportCodeData = JSON.parse(sessionStorage.getItem('airportCodeData'));
+	//判断是否有,号分割
+	if(/,/g.test(codStr)){
+		var vCodeArr = codStr.split(',');
+		var codN = 0;//行程数量
+		var isV = true;
+		$.each(vCodeArr,function(index, vCode){
+			//是否能是3的倍数
+			if(vCode.length%3==0){
+				if(vCode.length>=6){
+					codN = codN+(vCode.length/3-1);
+					var x = 3;
+					for (var i = 0, l = vCode.length; i < l/x; i++) {
+						var a = vCode.slice(x*i, x*(i+1));
+						var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+						if(typeof(airport) == 'undefined'){
+							isV = false;
+						}
+					}
+				}else{
+					isV = false;
+				}
+			}else{
+				isV = false;
+			}
+		});
+		if(isV==false){
+			return false;
+		}
+		if(codN>4){
+			return false;
+		}
+	}else{
+		//是否能是3的倍数
+		if(codStr.length%3==0){
+			if(codStr.length>=6){
+				var codN = codStr.length/3-1;//行程数量
+				if(codN<=4){
+					var x = 3;
+					for (var i = 0, l = codStr.length; i < l/x; i++) {
+						var a = codStr.slice(x*i, x*(i+1));
+						var airport = airportCodeData.find(function(codeData){return codeData.code==a});
+						if(typeof(airport) == 'undefined'){
+							return false;
+						}
+					}
+				}else{
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
+	}
+	if(/&/g.test(textStr)){
+		var vTextArr = textStr.split('&');
+		var textN = 0;//行程数量
+		var isV = true;
+		$.each(vTextArr,function(index, vText){
+			if(vText.includes('-')){
+				textN = textN+vText.match(/-/g).length;
+			}else{
+				isV = false;
+			}
+		});
+		if(isV==false){
+			return false;
+		}
+		if(textN>4){
+			return false;
+		}
+	}else{
+		if(textStr.includes('-')){
+			var textN = textStr.match(/-/g).length;
+		}else{
+			return false;
+		}
+		if(textN>4){
+			return false;
+		}
+	}
+	if(codN==textN){
+		return true;
+	}else{
+		return false;
+	}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="renderer" content="webkit|ie-comp|ie-stand">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+	<meta http-equiv="Cache-Control" content="no-siteapp" />
+	<link rel="stylesheet" href="__STATIC__/layui/css/layui.css">
+	<title>操作记录查看</title>
+</head>
+<body>
+<fieldset class="layui-elem-field">
+	<legend>航线信息</legend>
+	<div class="layui-field-box">
+		<table class="layui-table" lay-size="sm">
+			<thead>
+				<tr>
+					<td class="layui-hide">航线id</td>
+					<td>航线3字码</td>
+					<td>航线</td>
+					<td>间隔天数</td>
+					<td>月份</td>
+					<td>负责人</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="layui-hide" id='plan_positon_id'>{$airLineData.id}</td>
+					<td>{$airLineData.air_line_code}</td>
+					<td>
+						{php}
+							$tripInfoArr = [];
+							$vAirPortArr = explode('&',$airLineData['air_line_text']);
+							if(count($vAirPortArr)>1){
+								$tripN = 0;
+								foreach($vAirPortArr as $vAirPort)
+								{
+									$tripf = explode('-',$vAirPort);
+									for ($i=0; $i<=count($tripf)-1; $i++)
+									{
+										if($i>0){
+											$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+											$tripN = $tripN+1;
+										}
+									}
+									
+								}
+								$flightArr = explode('-',$airLineData['flight']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k];
+								}
+							}else
+							{
+								$tripN = 0;
+								$tripf = explode('-',$airLineData['air_line_text']);
+								for ($i=0; $i<=count($tripf)-1; $i++)
+								{
+									if($i>0){
+										$tripInfoArr[$tripN] = $tripf[$i-1].'-'.$tripf[$i];
+										$tripN = $tripN+1;
+									}
+								}
+								$flightArr = explode('-',$airLineData['flight']);
+								foreach($tripInfoArr as $k=>$vtrip)
+								{
+									$tripInfoArr[$k] = $vtrip.' '.$flightArr[$k];
+								}
+							}
+							foreach($tripInfoArr as $val)
+							{ 
+								echo $val.'<br>';	
+							} 
+						{/php}
+					</td>
+					<td>
+						{php}
+							$daysArr = explode('-',$airLineData['differ_days']);
+							foreach($daysArr as $val)
+							{ 
+								echo $val.'<br>';	
+							} 
+						{/php}
+					</td>
+					<td>{$airLineData.month}</td>
+					<td>{$airLineData.manager}</td>
+			</tbody>
+		</table>
+	</div>
+</fieldset>
+<ul class="layui-timeline">
+	{volist name="planLogData" id="planLog"}
+	<li class="layui-timeline-item">
+		<i class="layui-icon layui-timeline-axis">&#xe63f;</i>
+		<div class="layui-timeline-content layui-text">
+			<h3 class="layui-timeline-title">{$planLog->create_time}</h3>
+			{php}
+				if($planLog['type']=='air_line')
+				{
+					if($planLog['action']=='add')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#5FB878;">新增<b>“航线”</b></span>(#'.$planLog['air_line_id'].')<br> 
+							【<b>'.$planLog['air_line_info']['air_line_text'].' '.$planLog['air_line_info']['month'].'</b>】';
+					}elseif($planLog['action']=='updata')
+					{
+						switch ($planLog['action_field'])
+						{
+						case "air_line_code":
+							$vField = '航线3字码';
+							break;
+						case "air_line_text":
+							$vField = '航线3';
+							break;
+						case "flight":
+							$vField = '航班号';
+							break;
+						case "differ_days":
+							$vField = '间隔天数';
+							break;
+						case "month":
+							$vField = '月份';
+							break;
+						case "manager":
+							$vField = '负责人';
+							break;
+						default:
+							$vField = '识别失败';
+						}
+						echo $planLog['submiter'].' -> <span style="color:#FFB800;">更新<b>“航线”</b>信息</span>(#'.$planLog['air_line_id'].')<br>
+						“'.$vField.'” 从 【'.$planLog['before_value'].'】更新为【'.$planLog['after_value'].'】';
+					}elseif($planLog['action']=='delete')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#FF5722;">删除<b>“计划”</b></span>(#'.$planLog['air_line_id'].')<br>
+						【<b>'.$planLog['air_line_info']['air_line_text'].'</b>】';
+					}
+				}elseif($planLog['type']=='plan_position')
+				{
+					if($planLog['action']=='add')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#5FB878;">新增<b>“计划”</b></span>(#'.$planLog['plan_position_id'].')<br>
+						【<b>'.$planLog['plan_position_info']['departure_date_1'].'</b>】';
+					}elseif($planLog['action']=='updata')
+					{
+						switch ($planLog['action_field'])
+						{
+						case "policy_state":
+							$vField = '状态';
+							break;
+						case "departure_date_1":
+							$vField = '第1程日期';
+							break;
+						case "departure_date_2":
+							$vField = '第2程日期';
+							break;
+						case "departure_date_3":
+							$vField = '第3程日期';
+							break;
+						case "departure_date_4":
+							$vField = '第4程日期';
+							break;
+						case "air_time":
+							$vField = '起飞时间';
+							break;
+						case "seat_number":
+							$vField = '座位数';
+							break;
+						case "selling_price":
+							$vField = '最低销售价';
+							break;
+						case "reserve_price":
+							$vField = '含税底价';
+							break;
+						case "time_limit":
+							$vField = '出票时限';
+							break;
+						default:
+							$vField = '识别失败';
+						}
+						echo $planLog['submiter'].' -> <span style="color:#FFB800;">更新<b>“计划”</b>信息</span>(#'.$planLog['plan_position_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】 -> “'.$vField.'” 从 【'.$planLog['before_value'].'】更新为【'.$planLog['after_value'].'】';
+						
+					}elseif($planLog['action']=='delete')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#FF5722;">删除<b>“计划”</b></span>(#'.$planLog['plan_position_id'].')<br>
+						【<b>'.$planLog['plan_position_info']['departure_date_1'].'</b>】';
+					}
+				}elseif($planLog['type']=='reserve_record')
+				{
+					if($planLog['action']=='add')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#5FB878;">新增<b>“留位”</b></span>(#'.$planLog['reserve_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【<b>'.$planLog['reserve_record_info']['title'].'</b>】';
+					}elseif($planLog['action']=='updata')
+					{
+						switch ($planLog['action_field'])
+						{
+						case "title":
+							$vField = '名称';
+							break;
+						case "quantity":
+							$vField = '留位数量';
+							break;
+						case "create_time":
+							$vField = '操作时间';
+							break;
+						case "submitter":
+							$vField = '提交人';
+							break;
+						default:
+							$vField = '识别失败';
+						}
+						echo $planLog['submiter'].' -> <span style="color:#FFB800;">更新<b>“留位”</b>信息</span>(#'.$planLog['reserve_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['reserve_record_info']['title'].'】 -> “'.$vField.'” 从 【'.$planLog['before_value'].'】更新为【'.$planLog['after_value'].'】';
+						
+					}elseif($planLog['action']=='delete')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#FF5722;">删除<b>“留位”</b></span>(#'.$planLog['reserve_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【<b>'.$planLog['reserve_record_info']['title'].'</b>】';
+					}
+				}elseif($planLog['type']=='definite_record')
+				{
+					if($planLog['action']=='add')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#5FB878;">新增<b>“有名单留位”</b></span>(#'.$planLog['definite_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【<b>'.$planLog['definite_record_info']['title'].'</b>】';
+					}elseif($planLog['action']=='updata')
+					{
+						switch ($planLog['action_field'])
+						{
+						case "title":
+							$vField = '名称';
+							break;
+						case "create_time":
+							$vField = '操作时间';
+							break;
+						case "submitter":
+							$vField = '提交人';
+							break;
+						default:
+							$vField = '识别失败';
+						}
+						echo $planLog['submiter'].' -> <span style="color:#FFB800;">更新<b>“有名单留位”</b>信息</span>(#'.$planLog['definite_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['definite_record_info']['title'].'】 -> “'.$vField.'” 从 【'.$planLog['before_value'].'】更新为【'.$planLog['after_value'].'】';
+						
+					}elseif($planLog['action']=='delete')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#FF5722;">删除<b>“有名单留位”</b></span>(#'.$planLog['definite_record_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【<b>'.$planLog['definite_record_info']['title'].'</b>】';
+					}
+				}elseif($planLog['type']=='definite_pass')
+				{
+					if($planLog['action']=='add')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#5FB878;">新增<b>“乘机人名单”</b></span>(#'.$planLog['definite_pass_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['definite_record_info']['title'].'】 ->【<b>'.$planLog['definite_pass_info']['pass_name'].'</b>'.$planLog['definite_pass_info']['pass_id'].'】';
+					}elseif($planLog['action']=='updata')
+					{
+						switch ($planLog['action_field'])
+						{
+						case "pass_name":
+							$vField = '姓名';
+							break;
+						case "pass_id":
+							$vField = '证件号';
+							break;
+						case "ticket_number":
+							$vField = '票号';
+							break;
+						default:
+							$vField = '识别失败';
+						}
+						echo $planLog['submiter'].' -> <span style="color:#FFB800;">更新<b>“乘机人”</b>信息</span>(#'.$planLog['definite_pass_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['definite_record_info']['title'].'】 ->【'.$planLog['definite_pass_info']['pass_name'].'】 -> “'.$vField.'” 从 【'.$planLog['before_value'].'】更新为【'.$planLog['after_value'].'】';
+						
+					}elseif($planLog['action']=='delete')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#FF5722;">删除<b>“乘机人”</b></span>(#'.$planLog['definite_pass_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['definite_record_info']['title'].'】 ->【<b>'.$planLog['definite_pass_info']['pass_name'].'</b>】';
+					}elseif($planLog['action']=='recovery')
+					{
+						echo $planLog['submiter'].' -> <span style="color:#9900cc;">恢复<b>“乘机人”</b></span>(#'.$planLog['definite_pass_id'].')<br>
+						【'.$planLog['plan_position_info']['departure_date_1'].'】->【'.$planLog['definite_record_info']['title'].'】 ->【<b>'.$planLog['definite_pass_info']['pass_name'].'</b>】';
+					}
+				}
+			{/php}
+		</div>
+	</li>
+	{/volist}
+</ul>
+<script type="text/javascript" src="__STATIC__/js/jquery-3.3.1.min.js"></script> 
+<script src="__STATIC__/layui/layui.js"></script>
+
+<script>
+$(document).ready(function(){
+	
+	
+});
+
+</script>
+</body>
+</html>
